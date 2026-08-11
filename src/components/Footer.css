@@ -1,0 +1,32 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-xl);
+  padding-block: var(--space-lg);
+}
+
+.footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.footer__brand {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.footer__tagline {
+  color: var(--color-muted);
+  margin: 0.2rem 0 0;
+}
+
+.footer__meta {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}

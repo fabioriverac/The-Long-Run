@@ -1,0 +1,27 @@
+.featured-post {
+  background: linear-gradient(135deg, var(--color-sand), var(--color-paper));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.featured-post__title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-top: 0.5rem;
+  max-width: 640px;
+}
+
+.featured-post__excerpt {
+  color: var(--color-muted);
+  font-size: 1.05rem;
+  max-width: 640px;
+}
+
+.featured-post__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}

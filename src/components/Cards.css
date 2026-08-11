@@ -1,0 +1,57 @@
+/* Shared card styling for RunCard, RecipeCard, and PostCard */
+.card {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft);
+}
+
+.card__tag {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-olive-dark);
+  background: rgba(108, 113, 84, 0.12);
+  padding: 0.25em 0.7em;
+  border-radius: 999px;
+}
+
+.card__tag--clay {
+  color: var(--color-clay-dark);
+  background: rgba(193, 104, 63, 0.12);
+}
+
+.card__title {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.card__meta strong {
+  color: var(--color-charcoal);
+}
+
+.card__excerpt {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  margin: 0;
+  flex-grow: 1;
+}

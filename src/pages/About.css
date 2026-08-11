@@ -1,0 +1,6 @@
+.about__body {
+  max-width: 680px;
+  font-size: 1.08rem;
+  color: var(--color-charcoal);
+  padding-block: 0 var(--space-lg);
+}
