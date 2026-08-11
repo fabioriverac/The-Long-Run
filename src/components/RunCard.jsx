@@ -1,9 +1,5 @@
 import "./Cards.css";
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
+import { formatDate } from "../utils/formatDate.js";
 
 function RunCard({ run }) {
   const { title, date, distanceKm, pace, type, note } = run;
@@ -13,7 +9,7 @@ function RunCard({ run }) {
       <span className="card__tag">{type}</span>
       <h3 className="card__title">{title}</h3>
       <div className="card__meta">
-        <span>{dateFormatter.format(new Date(date))}</span>
+        <span>{formatDate(date, { month: "short", day: "numeric" })}</span>
         <span>
           <strong>{distanceKm} km</strong>
         </span>

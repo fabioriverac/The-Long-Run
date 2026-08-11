@@ -1,11 +1,6 @@
 import { Link } from "react-router-dom";
 import "./FeaturedPost.css";
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-});
+import { formatDate } from "../utils/formatDate.js";
 
 /**
  * Larger single-post preview used on the homepage to spotlight
@@ -21,7 +16,7 @@ function FeaturedPost({ post }) {
       <p className="featured-post__excerpt">{excerpt}</p>
       <div className="featured-post__footer">
         <span className="card__meta">
-          {dateFormatter.format(new Date(date))} · {readTime}
+          {formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · {readTime}
         </span>
         <Link to="/blog" className="link-more">
           Read the post
