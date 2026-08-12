@@ -1,0 +1,108 @@
+/* Shared shell for dashboard panels on the Running page */
+.dashboard-panel {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.dashboard-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.dashboard-panel__title {
+  font-size: 1.2rem;
+  margin: 0.2rem 0 0;
+}
+
+.dashboard-panel__badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: var(--color-olive-dark);
+  background: rgba(108, 113, 84, 0.14);
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.dashboard-panel__empty {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  padding: var(--space-sm) 0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small stat row used inside panels (Race Predictor, Recovery) */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.dashboard-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dashboard-stat__value {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.dashboard-stat__value--goal {
+  color: var(--color-clay-dark);
+}
+
+.dashboard-stat__label {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+
+@media (max-width: 640px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Recovery panel: 4 small metrics, each with its own sparkline */
+.recovery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.recovery-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+@media (max-width: 640px) {
+  .recovery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

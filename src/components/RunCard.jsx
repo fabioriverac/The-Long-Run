@@ -1,8 +1,9 @@
 import "./Cards.css";
 import { formatDate } from "../utils/formatDate.js";
+import { formatPace } from "../utils/formatPace.js";
 
 function RunCard({ run }) {
-  const { title, date, distanceKm, pace, type, note } = run;
+  const { title, date, distance_km: distanceKm, duration_seconds: durationSeconds, type, note } = run;
 
   return (
     <article className="card">
@@ -13,9 +14,9 @@ function RunCard({ run }) {
         <span>
           <strong>{distanceKm} km</strong>
         </span>
-        <span>{pace}</span>
+        <span>{formatPace(distanceKm, durationSeconds)}</span>
       </div>
-      <p className="card__excerpt">{note}</p>
+      {note && <p className="card__excerpt">{note}</p>}
     </article>
   );
 }
