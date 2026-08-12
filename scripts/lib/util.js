@@ -19,7 +19,7 @@ export function toLocalDate(isoTimestamp, timeZone = RUNNER_TIMEZONE) {
     month: "2-digit",
     day: "2-digit",
   });
-  // en-CA formats as YYYY-MM-DD, which is what a Postgres `date` column wants.
+  // en-CA formats as YYYY-MM-DD, which is what we want for the JSON date field.
   return formatter.format(new Date(isoTimestamp));
 }
 
@@ -34,25 +34,4 @@ export function toNumberOrNull(value) {
   if (value === null || value === undefined || value === "") return null;
   const num = Number(value);
   return Number.isNaN(num) ? null : num;
-}
-
-/** Upsert rows into a table in chunks, logging the result. */
-export async function upsertInChunks(supabaseAdmin, table, rows, conflictColumn, chunkSize = 200) {
-  if (rows.length === 0) {
-    console.log(`[${table}] nothing to sync`);
-    return { upserted: 0 };
-  }
-
-  let upserted = 0;
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    const { error } = await supabaseAdmin.from(table).upsert(chunk, { onConflict: conflictColumn });
-    if (error) {
-      throw new Error(`[${table}] upsert failed: ${error.message}`);
-    }
-    upserted += chunk.length;
-  }
-
-  console.log(`[${table}] upserted ${upserted} row(s)`);
-  return { upserted };
 }

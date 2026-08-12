@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useAsyncData } from "../../hooks/useAsyncData.js";
 import { getAllRuns } from "../../data/runsRepository.js";
 import { groupByWeek } from "../../utils/groupByWeek.js";
 import { formatDate } from "../../utils/formatDate.js";
@@ -10,17 +9,9 @@ import "./DashboardPanel.css";
 const WEEKS_SHOWN = 12;
 
 function WeeklyVolumeChart() {
-  const { data: runs, loading } = useAsyncData(() => getAllRuns(), []);
+  const runs = getAllRuns();
 
   const weeks = useMemo(() => groupByWeek(runs).slice(-WEEKS_SHOWN), [runs]);
-
-  if (loading) {
-    return (
-      <section className="dashboard-panel">
-        <p className="dashboard-panel__empty">Loading weekly volume…</p>
-      </section>
-    );
-  }
 
   return (
     <section className="dashboard-panel">

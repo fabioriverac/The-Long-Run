@@ -1,0 +1,702 @@
+[
+  {
+    "date": "2026-08-12",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": 1226,
+    "race_predictor_10k_seconds": 2585,
+    "race_predictor_half_marathon_seconds": 5953,
+    "race_predictor_marathon_seconds": 13850
+  },
+  {
+    "date": "2026-08-11",
+    "vo2max": 51.3,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": 1224,
+    "race_predictor_10k_seconds": 2583,
+    "race_predictor_half_marathon_seconds": 5932,
+    "race_predictor_marathon_seconds": 13773
+  },
+  {
+    "date": "2026-08-10",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": 1224,
+    "race_predictor_10k_seconds": 2583,
+    "race_predictor_half_marathon_seconds": 5917,
+    "race_predictor_marathon_seconds": 13728
+  },
+  {
+    "date": "2026-08-09",
+    "vo2max": 51.3,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": 1224,
+    "race_predictor_10k_seconds": 2581,
+    "race_predictor_half_marathon_seconds": 5893,
+    "race_predictor_marathon_seconds": 13652
+  },
+  {
+    "date": "2026-08-08",
+    "vo2max": 51.3,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-07",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-06",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-05",
+    "vo2max": 51.4,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-04",
+    "vo2max": 51.4,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-03",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-02",
+    "vo2max": 51.4,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-08-01",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-31",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-30",
+    "vo2max": null,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-29",
+    "vo2max": 51.5,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-28",
+    "vo2max": 51.6,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-27",
+    "vo2max": null,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-26",
+    "vo2max": null,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-25",
+    "vo2max": null,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-24",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-23",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-22",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-21",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-20",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-19",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-18",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-17",
+    "vo2max": 51.7,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-16",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-15",
+    "vo2max": 51.7,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-14",
+    "vo2max": 51.7,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-13",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-12",
+    "vo2max": 51.7,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-11",
+    "vo2max": 51.8,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-10",
+    "vo2max": 51.8,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-09",
+    "vo2max": 51.8,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-08",
+    "vo2max": 51.7,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-05",
+    "vo2max": 51.7,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-04",
+    "vo2max": 51.7,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-02",
+    "vo2max": 51.7,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-07-01",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-28",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-27",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-26",
+    "vo2max": 51.6,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-25",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-24",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-23",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-21",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-20",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-19",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-18",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-17",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-13",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-12",
+    "vo2max": 51.5,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-11",
+    "vo2max": 51.4,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-09",
+    "vo2max": 51.4,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-07",
+    "vo2max": 51.4,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-06",
+    "vo2max": 51.3,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-04",
+    "vo2max": 51.3,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-06-03",
+    "vo2max": 51.2,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-30",
+    "vo2max": 51.2,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-27",
+    "vo2max": 51.1,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-25",
+    "vo2max": 51,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-24",
+    "vo2max": 51,
+    "training_status": "peaking",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-23",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-22",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-21",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-20",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-17",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-15",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  },
+  {
+    "date": "2026-05-14",
+    "vo2max": 50.9,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": null,
+    "race_predictor_10k_seconds": null,
+    "race_predictor_half_marathon_seconds": null,
+    "race_predictor_marathon_seconds": null
+  }
+]

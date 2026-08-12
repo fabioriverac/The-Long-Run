@@ -1,12 +1,8 @@
-import { createTableRepository } from "./createTableRepository.js";
-import fallbackTrainingStatus from "./trainingStatus.fallback.js";
+import snapshots from "./garmin/training-status.json";
 
-const repo = createTableRepository({
-  table: "training_status_snapshots",
-  fallbackData: fallbackTrainingStatus,
-});
+// Build-time data — see runsRepository.js for why this isn't a live fetch.
 
-/** Fetch training status snapshots, most recent first. */
+/** Most recent N training-status snapshots, most recent first. */
 export function getTrainingStatus(limit) {
-  return repo.fetchAll(limit);
+  return limit ? snapshots.slice(0, limit) : snapshots;
 }

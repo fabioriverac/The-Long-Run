@@ -1,31 +1,43 @@
 #!/usr/bin/env node
-// Syncs Garmin data (already fetched via the CustomGarmin MCP by the agent
-// running this) into Supabase. Run by the scheduled Claude Code Routine —
-// see the Routine's prompt for exactly how the input file gets built —
-// or manually for testing.
+// Turns Garmin data (already fetched via the CustomGarmin MCP by the agent
+// running this) into the site's build-time data files. No network calls,
+// no credentials — deterministic mapping only.
 //
 // Usage:
 //   node scripts/sync-garmin.mjs <path-to-garmin-data.json>
 //
 // Expected input JSON shape (the raw shape each CustomGarmin MCP tool
-// already returns — this script does no reshaping of the top level, only
-// per-row mapping):
+// already returns):
 //   {
 //     "activities": [...],     // list_activities(...).activities
-//     "trainingStatus": [...], // get_training_status(...).snapshots
-//     "dailyHealth": [...],    // get_daily_health(...).days
-//     "sleep": [...]           // get_sleep(...).nights
+//     "trainingStatus": [...]  // get_training_status(...).snapshots
 //   }
-// Any key may be omitted or empty — each domain syncs independently.
+// Either key may be omitted — each domain updates independently, only
+// overwriting its own output file.
 //
-// Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment.
+// Writes:
+//   src/data/garmin/runs.json          full training log (Running page)
+//   src/data/garmin/runs-latest.json   small slice (Home page)
+//   src/data/garmin/training-status.json
+//
+// runs.json and runs-latest.json are separate files, not one file sliced
+// two ways, so that Home's bundle (not lazy-loaded) only ever pulls in the
+// small file — see src/data/latestRunsRepository.js vs runsRepository.js.
 
-import { readFile } from "node:fs/promises";
-import { supabaseAdmin } from "./lib/supabaseAdmin.js";
-import { syncRuns } from "./lib/runs.js";
-import { syncTrainingStatus } from "./lib/trainingStatus.js";
-import { syncDailyHealth } from "./lib/dailyHealth.js";
-import { syncSleep } from "./lib/sleep.js";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { mapActivities } from "./lib/runs.js";
+import { mapSnapshots } from "./lib/trainingStatus.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OUTPUT_DIR = path.join(__dirname, "..", "src", "data", "garmin");
+
+// Trim history to what the dashboards actually render, so the repo never
+// carries (or publishes) more than the site shows.
+const RUNS_WINDOW_DAYS = 365;
+const TRAINING_STATUS_WINDOW_DAYS = 90;
+const HOME_LATEST_RUNS_COUNT = 6;
 
 async function main() {
   const inputPath = process.argv[2];
@@ -37,22 +49,37 @@ async function main() {
   const raw = await readFile(inputPath, "utf-8");
   const data = JSON.parse(raw);
 
+  await mkdir(OUTPUT_DIR, { recursive: true });
+
   const results = {};
 
   if (data.activities?.length) {
-    results.runs = await syncRuns(supabaseAdmin, data.activities);
-  }
-  if (data.trainingStatus?.length) {
-    results.trainingStatus = await syncTrainingStatus(supabaseAdmin, data.trainingStatus);
-  }
-  if (data.dailyHealth?.length) {
-    results.dailyHealth = await syncDailyHealth(supabaseAdmin, data.dailyHealth);
-  }
-  if (data.sleep?.length) {
-    results.sleep = await syncSleep(supabaseAdmin, data.sleep);
+    const runs = withinWindow(mapActivities(data.activities), RUNS_WINDOW_DAYS);
+    await writeJson("runs.json", runs);
+    await writeJson("runs-latest.json", runs.slice(0, HOME_LATEST_RUNS_COUNT));
+    results.runs = runs.length;
   }
 
-  console.log("\nSync complete:", JSON.stringify(results, null, 2));
+  if (data.trainingStatus?.length) {
+    const snapshots = withinWindow(mapSnapshots(data.trainingStatus), TRAINING_STATUS_WINDOW_DAYS);
+    await writeJson("training-status.json", snapshots);
+    results.trainingStatus = snapshots.length;
+  }
+
+  console.log("Sync complete:", JSON.stringify(results, null, 2));
+}
+
+function withinWindow(rows, days) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  return rows.filter((row) => row.date >= cutoffStr);
+}
+
+async function writeJson(filename, data) {
+  const filePath = path.join(OUTPUT_DIR, filename);
+  await writeFile(filePath, JSON.stringify(data, null, 2) + "\n", "utf-8");
+  console.log(`Wrote ${data.length} row(s) to src/data/garmin/${filename}`);
 }
 
 main().catch((error) => {

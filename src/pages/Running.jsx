@@ -2,12 +2,10 @@ import RunCard from "../components/RunCard.jsx";
 import RacePredictor from "../components/dashboards/RacePredictor.jsx";
 import TrainingStatusPanel from "../components/dashboards/TrainingStatusPanel.jsx";
 import WeeklyVolumeChart from "../components/dashboards/WeeklyVolumeChart.jsx";
-import RecoveryPanel from "../components/dashboards/RecoveryPanel.jsx";
-import { useAsyncData } from "../hooks/useAsyncData.js";
 import { getAllRuns } from "../data/runsRepository.js";
 
 function Running() {
-  const { data: runs, loading: runsLoading } = useAsyncData(() => getAllRuns(), []);
+  const runs = getAllRuns();
 
   return (
     <>
@@ -29,10 +27,7 @@ function Running() {
       </section>
 
       <section className="section container">
-        <div className="dashboard-grid">
-          <WeeklyVolumeChart />
-          <RecoveryPanel />
-        </div>
+        <WeeklyVolumeChart />
       </section>
 
       <section className="section container">
@@ -42,15 +37,11 @@ function Running() {
             <h2>Recent runs</h2>
           </div>
         </div>
-        {runsLoading ? (
-          <p className="card__meta">Loading runs…</p>
-        ) : (
-          <div className="card-grid">
-            {runs.map((run) => (
-              <RunCard run={run} key={run.id ?? run.garmin_activity_id} />
-            ))}
-          </div>
-        )}
+        <div className="card-grid">
+          {runs.map((run) => (
+            <RunCard run={run} key={run.id} />
+          ))}
+        </div>
       </section>
     </>
   );

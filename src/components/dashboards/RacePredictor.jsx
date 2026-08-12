@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
-import { useAsyncData } from "../../hooks/useAsyncData.js";
 import { getTrainingStatus } from "../../data/trainingStatusRepository.js";
 import { formatDuration } from "../../utils/formatPace.js";
 import { formatDate } from "../../utils/formatDate.js";
@@ -10,7 +9,7 @@ import "./DashboardPanel.css";
 const SUB_3_SECONDS = 3 * 60 * 60;
 
 function RacePredictor() {
-  const { data: snapshots, loading } = useAsyncData(() => getTrainingStatus(60), []);
+  const snapshots = getTrainingStatus(60);
 
   const sorted = useMemo(
     () => [...snapshots].sort((a, b) => new Date(a.date) - new Date(b.date)),
@@ -30,13 +29,14 @@ function RacePredictor() {
     [sorted],
   );
 
-  if (loading) {
-    return (
-      <section className="dashboard-panel">
-        <p className="dashboard-panel__empty">Loading race predictions…</p>
-      </section>
-    );
-  }
+  // Computed explicitly rather than a Recharts domain expression string —
+  // see TrainingStatusPanel.jsx for why. Includes the sub-3 reference line
+  // in the range so it's never clipped off-chart.
+  const marathonDomain = useMemo(() => {
+    if (chartData.length === 0) return undefined;
+    const values = [...chartData.map((point) => point.marathonSeconds), SUB_3_SECONDS];
+    return [Math.min(...values) - 300, Math.max(...values) + 300];
+  }, [chartData]);
 
   if (!latest) {
     return (
@@ -83,7 +83,7 @@ function RacePredictor() {
             <YAxis
               tickFormatter={(s) => formatDuration(s)}
               width={56}
-              domain={["dataMin - 300", "dataMax + 300"]}
+              domain={marathonDomain}
               {...CHART_AXIS_PROPS}
             />
             <Tooltip

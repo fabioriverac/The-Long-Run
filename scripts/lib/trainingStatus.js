@@ -1,6 +1,6 @@
-import { toNumberOrNull, upsertInChunks } from "./util.js";
+import { toNumberOrNull } from "./util.js";
 
-/** Map one raw Garmin training-status snapshot to a row. */
+/** Map one raw Garmin training-status snapshot to a record. */
 export function mapSnapshot(snapshot) {
   return {
     // snapshot.date is already a whole-day value ("2026-08-12T00:00:00.000Z")
@@ -18,7 +18,12 @@ export function mapSnapshot(snapshot) {
   };
 }
 
-export async function syncTrainingStatus(supabaseAdmin, snapshots) {
-  const rows = snapshots.map(mapSnapshot);
-  return upsertInChunks(supabaseAdmin, "training_status_snapshots", rows, "date");
+/**
+ * Map a raw get_training_status() result into sorted, deduped snapshot
+ * records, most recent first.
+ */
+export function mapSnapshots(snapshots) {
+  const mapped = snapshots.map(mapSnapshot);
+  const byDate = new Map(mapped.map((snap) => [snap.date, snap]));
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
 }

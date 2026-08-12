@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useAsyncData } from "../../hooks/useAsyncData.js";
 import { getTrainingStatus } from "../../data/trainingStatusRepository.js";
 import { formatDate } from "../../utils/formatDate.js";
 import { CHART_AXIS_PROPS, CHART_COLOR_TRAINING } from "../../lib/chartTheme.js";
@@ -18,7 +17,7 @@ const STATUS_COPY = {
 };
 
 function TrainingStatusPanel() {
-  const { data: snapshots, loading } = useAsyncData(() => getTrainingStatus(60), []);
+  const snapshots = getTrainingStatus(60);
 
   const sorted = useMemo(
     () => [...snapshots].sort((a, b) => new Date(a.date) - new Date(b.date)),
@@ -32,13 +31,15 @@ function TrainingStatusPanel() {
     [sorted],
   );
 
-  if (loading) {
-    return (
-      <section className="dashboard-panel">
-        <p className="dashboard-panel__empty">Loading training status…</p>
-      </section>
-    );
-  }
+  // Computed explicitly rather than passed as a Recharts domain expression
+  // string (e.g. "dataMin - 1") — with a tight real-world VO2max range
+  // (~1-2 points wide), that string form produced bogus interleaved tick
+  // labels in testing. Plain numbers are unambiguous.
+  const vo2maxDomain = useMemo(() => {
+    if (vo2maxSeries.length === 0) return undefined;
+    const values = vo2maxSeries.map((point) => point.vo2max);
+    return [Math.floor(Math.min(...values) - 1), Math.ceil(Math.max(...values) + 1)];
+  }, [vo2maxSeries]);
 
   return (
     <section className="dashboard-panel">
@@ -64,7 +65,7 @@ function TrainingStatusPanel() {
               tickFormatter={(d) => formatDate(d, { month: "short", day: "numeric" })}
               {...CHART_AXIS_PROPS}
             />
-            <YAxis width={32} domain={["dataMin - 1", "dataMax + 1"]} {...CHART_AXIS_PROPS} />
+            <YAxis width={36} domain={vo2maxDomain} allowDecimals={false} {...CHART_AXIS_PROPS} />
             <Tooltip
               formatter={(value) => [value, "VO2max"]}
               labelFormatter={(d) => formatDate(d, { month: "short", day: "numeric", year: "numeric" })}

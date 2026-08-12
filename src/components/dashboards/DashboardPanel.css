@@ -50,7 +50,7 @@
   }
 }
 
-/* Small stat row used inside panels (Race Predictor, Recovery) */
+/* Small stat row used inside panels (Race Predictor) */
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -84,25 +84,6 @@
 
 @media (max-width: 640px) {
   .dashboard-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Recovery panel: 4 small metrics, each with its own sparkline */
-.recovery-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-md);
-}
-
-.recovery-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-@media (max-width: 640px) {
-  .recovery-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

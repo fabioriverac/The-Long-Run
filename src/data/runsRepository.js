@@ -1,14 +1,18 @@
-import { createTableRepository } from "./createTableRepository.js";
-import fallbackRuns from "./runs.fallback.js";
+import runs from "./garmin/runs.json";
 
-const repo = createTableRepository({ table: "runs", fallbackData: fallbackRuns });
+// Build-time data: synced from Garmin by scripts/sync-garmin.mjs into a
+// plain JSON file, imported directly. No client fetch, no loading state,
+// no credentials — refreshing data means re-running the sync and
+// redeploying, which fits this site's actual update cadence (about once a
+// day) far better than a live database ever needed to.
+//
+// Only used by the (lazy-loaded) Running page, deliberately — see
+// latestRunsRepository.js for Home's small-slice equivalent. Keeping these
+// as separate modules with separate JSON files means the full ~200-run
+// history never ends up in the main bundle just because Home also needs a
+// few recent runs.
 
-/** Fetch the most recent N runs, most recent first. */
-export function getLatestRuns(limit) {
-  return repo.fetchAll(limit);
-}
-
-/** Fetch the full training log, most recent first. */
+/** The full training log, most recent first. */
 export function getAllRuns() {
-  return repo.fetchAll();
+  return runs;
 }

@@ -4,13 +4,12 @@ import PillarsGrid from "../components/PillarsGrid.jsx";
 import RunCard from "../components/RunCard.jsx";
 import RecipeCard from "../components/RecipeCard.jsx";
 import FeaturedPost from "../components/FeaturedPost.jsx";
-import { useAsyncData } from "../hooks/useAsyncData.js";
-import { getLatestRuns } from "../data/runsRepository.js";
+import { getLatestRuns } from "../data/latestRunsRepository.js";
 import recipes from "../data/recipes.js";
 import posts from "../data/posts.js";
 
 function Home() {
-  const { data: latestRuns, loading: runsLoading } = useAsyncData(() => getLatestRuns(3), []);
+  const latestRuns = getLatestRuns(3);
   const latestRecipes = recipes.slice(0, 3);
   const latestPost = posts[0];
 
@@ -29,15 +28,11 @@ function Home() {
           linkTo="/running"
           linkLabel="See all runs"
         />
-        {runsLoading ? (
-          <p className="card__meta">Loading runs…</p>
-        ) : (
-          <div className="card-grid">
-            {latestRuns.map((run) => (
-              <RunCard run={run} key={run.id ?? run.garmin_activity_id} />
-            ))}
-          </div>
-        )}
+        <div className="card-grid">
+          {latestRuns.map((run) => (
+            <RunCard run={run} key={run.id} />
+          ))}
+        </div>
       </section>
 
       <section className="section container">
