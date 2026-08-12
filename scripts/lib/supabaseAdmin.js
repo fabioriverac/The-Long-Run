@@ -4,6 +4,12 @@ import { createClient } from "@supabase/supabase-js";
 // Security. This must never run in the browser bundle — it's only ever
 // invoked from scripts/sync-garmin.mjs, itself only ever run by the
 // scheduled ingestion Routine (or manually, by you, for testing).
+//
+// This project shares a Supabase instance with another app (the habit
+// tracker), so all writes target the `becoming_self` schema — see
+// supabase/migrations/0001_fitness_dashboard.sql.
+const SCHEMA = "becoming_self";
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -14,4 +20,4 @@ if (!supabaseUrl || !serviceRoleKey) {
   );
 }
 
-export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: SCHEMA } });

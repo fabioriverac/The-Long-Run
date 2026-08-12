@@ -74,6 +74,15 @@ Garmin → CustomGarmin MCP → scripts/sync-garmin.mjs (scheduled Routine) → 
   `supabase/migrations/0001_fitness_dashboard.sql`). No secret ever ships
   to the browser.
 
+**Note:** this project shares a Supabase project with another app (a habit
+tracker) instead of getting its own — the account is capped at 2 free
+projects and both are already in use. All four tables live in a dedicated
+`becoming_self` Postgres schema (not `public`), isolated from the habit
+tracker's tables by namespace and by grants. After running the migration,
+one manual step in the Supabase dashboard is required: **Project Settings →
+API → Exposed schemas → add `becoming_self`** (PostgREST only exposes
+`public` by default — without this, queries 404).
+
 To sync manually: fetch fresh data via the Garmin MCP tools, write it to a
 JSON file shaped like the comment at the top of `scripts/sync-garmin.mjs`,
 then run:

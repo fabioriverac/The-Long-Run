@@ -2,15 +2,31 @@
 -- Run this once in the Supabase SQL editor (or via `supabase db push`
 -- if you're using the Supabase CLI locally).
 --
+-- This project shares a Supabase instance with another app (the habit
+-- tracker) rather than getting its own project, so everything here lives
+-- in its own `becoming_self` schema instead of `public` — fully isolated
+-- from that app's tables, both by namespace and by grants.
+--
+-- IMPORTANT — one manual step this SQL can't do: after running this,
+-- go to Project Settings → API → "Exposed schemas" in the Supabase
+-- dashboard and add `becoming_self` to the list (PostgREST only exposes
+-- `public` by default). Without that step, the site's queries will 404.
+--
 -- Four tables, all populated by scripts/sync-garmin.mjs via a scheduled
 -- Claude Code Routine. All are RLS-locked to public SELECT only — writes
 -- require the service_role key, which is only ever used server-side by
 -- the ingestion script, never shipped to the browser.
 
+create schema if not exists becoming_self;
+
+grant usage on schema becoming_self to anon, authenticated;
+alter default privileges in schema becoming_self
+  grant select on tables to anon, authenticated;
+
 -- ---------------------------------------------------------------------
 -- runs — training log, one row per Garmin activity
 -- ---------------------------------------------------------------------
-create table if not exists public.runs (
+create table if not exists becoming_self.runs (
   id                  bigint generated always as identity primary key,
   garmin_activity_id  bigint unique,
   title               text not null,
@@ -26,15 +42,15 @@ create table if not exists public.runs (
   created_at          timestamptz not null default now()
 );
 
-comment on table public.runs is
+comment on table becoming_self.runs is
   'Training log entries. source = garmin rows are upserted by scripts/sync-garmin.mjs, keyed on garmin_activity_id; source = manual rows can be added by hand for notes Garmin does not provide.';
 
-create index if not exists runs_date_idx on public.runs (date desc);
+create index if not exists runs_date_idx on becoming_self.runs (date desc);
 
 -- ---------------------------------------------------------------------
 -- training_status_snapshots — VO2max, training status, race predictions
 -- ---------------------------------------------------------------------
-create table if not exists public.training_status_snapshots (
+create table if not exists becoming_self.training_status_snapshots (
   date                                date primary key,
   vo2max                              numeric(4, 1),
   training_status                     text,
@@ -46,13 +62,13 @@ create table if not exists public.training_status_snapshots (
   synced_at                           timestamptz not null default now()
 );
 
-comment on table public.training_status_snapshots is
+comment on table becoming_self.training_status_snapshots is
   'One row per day Garmin captured a training status snapshot. Sparse by nature (e.g. vo2max is not measured daily) — upsert on date conflict, only overwriting fields Garmin actually returned that day.';
 
 -- ---------------------------------------------------------------------
 -- daily_health — steps, resting HR, stress, intensity minutes
 -- ---------------------------------------------------------------------
-create table if not exists public.daily_health (
+create table if not exists becoming_self.daily_health (
   date                        date primary key,
   steps                       integer,
   resting_hr                  integer,
@@ -68,7 +84,7 @@ create table if not exists public.daily_health (
 -- ---------------------------------------------------------------------
 -- sleep_nights — sleep stages, body battery change
 -- ---------------------------------------------------------------------
-create table if not exists public.sleep_nights (
+create table if not exists becoming_self.sleep_nights (
   date                  date primary key,
   sleep_start            timestamptz,
   sleep_end              timestamptz,
@@ -86,21 +102,21 @@ create table if not exists public.sleep_nights (
 -- ---------------------------------------------------------------------
 -- Row Level Security — public read-only on all four tables
 -- ---------------------------------------------------------------------
-alter table public.runs enable row level security;
-alter table public.training_status_snapshots enable row level security;
-alter table public.daily_health enable row level security;
-alter table public.sleep_nights enable row level security;
+alter table becoming_self.runs enable row level security;
+alter table becoming_self.training_status_snapshots enable row level security;
+alter table becoming_self.daily_health enable row level security;
+alter table becoming_self.sleep_nights enable row level security;
 
-create policy "Public read access" on public.runs
+create policy "Public read access" on becoming_self.runs
   for select to anon using (true);
 
-create policy "Public read access" on public.training_status_snapshots
+create policy "Public read access" on becoming_self.training_status_snapshots
   for select to anon using (true);
 
-create policy "Public read access" on public.daily_health
+create policy "Public read access" on becoming_self.daily_health
   for select to anon using (true);
 
-create policy "Public read access" on public.sleep_nights
+create policy "Public read access" on becoming_self.sleep_nights
   for select to anon using (true);
 
 -- No insert/update/delete policy is created for `anon` on any table, on
