@@ -1,5 +1,18 @@
 [
   {
+    "id": "garmin-23953209084",
+    "garmin_activity_id": 23953209084,
+    "title": "Berlin Running",
+    "date": "2026-08-12",
+    "distance_km": 10,
+    "duration_seconds": 3779,
+    "avg_hr": 148,
+    "max_hr": 167,
+    "type": "Easy",
+    "note": null,
+    "source": "garmin"
+  },
+  {
     "id": "garmin-23930938685",
     "garmin_activity_id": 23930938685,
     "title": "Berlin Running",
@@ -60,19 +73,6 @@
     "duration_seconds": 3698,
     "avg_hr": 148,
     "max_hr": 176,
-    "type": "Easy",
-    "note": null,
-    "source": "garmin"
-  },
-  {
-    "id": "garmin-23843805187",
-    "garmin_activity_id": 23843805187,
-    "title": "Berlin Laufen",
-    "date": "2026-08-04",
-    "distance_km": 10,
-    "duration_seconds": 3727,
-    "avg_hr": 144,
-    "max_hr": 163,
     "type": "Easy",
     "note": null,
     "source": "garmin"
