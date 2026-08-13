@@ -12,17 +12,25 @@
 //     "activities": [...],     // list_activities(...).activities
 //     "trainingStatus": [...]  // get_training_status(...).snapshots
 //   }
-// Either key may be omitted — each domain updates independently, only
-// overwriting its own output file.
+// Either key may be omitted — each domain updates independently.
+//
+// IMPORTANT: this script MERGES with whatever is already on disk — it
+// never trusts the input to be a complete history. It reads the existing
+// runs.json + runs-archive.json, combines them with the newly mapped
+// activities (keyed by garmin_activity_id — incoming wins on conflict,
+// e.g. if Garmin recalculates something), then re-splits the combined set
+// by the 365-day window. This makes the script safe to run with ANY input
+// range — a daily sync asking for the last 45 days can never destroy older
+// history the way a naive overwrite would. (It used to be a naive
+// overwrite. That was a real bug: a 45-day sync against the old version of
+// this script would have silently dropped 187 of 215 runs on its first
+// run. Never go back to overwrite-in-place for runs.)
 //
 // Writes:
-//   src/data/garmin/runs.json          full training log (Running page)
-//   src/data/garmin/runs-latest.json   small slice (Home page)
-//   src/data/garmin/training-status.json
-//
-// runs.json and runs-latest.json are separate files, not one file sliced
-// two ways, so that Home's bundle (not lazy-loaded) only ever pulls in the
-// small file — see src/data/latestRunsRepository.js vs runsRepository.js.
+//   src/data/garmin/runs.json           last 365 days (Running page log)
+//   src/data/garmin/runs-archive.json   everything older — never deleted
+//   src/data/garmin/runs-latest.json    small slice (Home page)
+//   src/data/garmin/training-status.json  last 90 days, also merged
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -34,7 +42,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, "..", "src", "data", "garmin");
 
 // Trim history to what the dashboards actually render, so the repo never
-// carries (or publishes) more than the site shows.
+// carries (or publishes) more than the site shows. Runs older than the
+// window move to the archive instead of being discarded — see above.
 const RUNS_WINDOW_DAYS = 365;
 const TRAINING_STATUS_WINDOW_DAYS = 90;
 const HOME_LATEST_RUNS_COUNT = 6;
@@ -54,26 +63,68 @@ async function main() {
   const results = {};
 
   if (data.activities?.length) {
-    const runs = withinWindow(mapActivities(data.activities), RUNS_WINDOW_DAYS);
-    await writeJson("runs.json", runs);
-    await writeJson("runs-latest.json", runs.slice(0, HOME_LATEST_RUNS_COUNT));
-    results.runs = runs.length;
+    const incoming = mapActivities(data.activities);
+    const existingCurrent = await readJson("runs.json");
+    const existingArchive = await readJson("runs-archive.json");
+
+    const merged = mergeById([...existingArchive, ...existingCurrent, ...incoming], "garmin_activity_id");
+    const { current, archived } = splitByWindow(merged, RUNS_WINDOW_DAYS);
+
+    await writeJson("runs.json", current);
+    await writeJson("runs-archive.json", archived);
+    await writeJson("runs-latest.json", current.slice(0, HOME_LATEST_RUNS_COUNT));
+
+    results.runs = {
+      current: current.length,
+      archived: archived.length,
+      total: merged.length,
+    };
   }
 
   if (data.trainingStatus?.length) {
-    const snapshots = withinWindow(mapSnapshots(data.trainingStatus), TRAINING_STATUS_WINDOW_DAYS);
-    await writeJson("training-status.json", snapshots);
-    results.trainingStatus = snapshots.length;
+    const incoming = mapSnapshots(data.trainingStatus);
+    const existing = await readJson("training-status.json");
+
+    const merged = mergeById([...existing, ...incoming], "date");
+    const { current } = splitByWindow(merged, TRAINING_STATUS_WINDOW_DAYS);
+
+    await writeJson("training-status.json", current);
+    results.trainingStatus = current.length;
   }
 
   console.log("Sync complete:", JSON.stringify(results, null, 2));
 }
 
-function withinWindow(rows, days) {
+/** Read a JSON array file from the output dir, or [] if it doesn't exist yet. */
+async function readJson(filename) {
+  try {
+    const raw = await readFile(path.join(OUTPUT_DIR, filename), "utf-8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw new Error(`Failed to read existing ${filename}: ${error.message}`);
+  }
+}
+
+/**
+ * Merge records by key, later entries winning on conflict, sorted
+ * descending by date (most recent first).
+ */
+function mergeById(records, keyField) {
+  const byKey = new Map(records.map((r) => [r[keyField], r]));
+  return [...byKey.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** Split records into {current, archived} by a rolling day window. */
+function splitByWindow(rows, days) {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
-  return rows.filter((row) => row.date >= cutoffStr);
+  return {
+    current: rows.filter((row) => row.date >= cutoffStr),
+    archived: rows.filter((row) => row.date < cutoffStr),
+  };
 }
 
 async function writeJson(filename, data) {
