@@ -7,7 +7,7 @@ import { formatDate } from "../utils/formatDate.js";
  * the latest blog entry.
  */
 function FeaturedPost({ post }) {
-  const { title, category, date, readTime, excerpt } = post;
+  const { slug, title, category, date, readTime, excerpt } = post;
 
   return (
     <article className="featured-post">
@@ -18,7 +18,7 @@ function FeaturedPost({ post }) {
         <span className="card__meta">
           {formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · {readTime}
         </span>
-        <Link to="/blog" className="link-more">
+        <Link to={`/blog/${slug}`} className="link-more">
           Read the post
         </Link>
       </div>

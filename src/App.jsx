@@ -13,6 +13,12 @@ import NotFound from "./pages/NotFound.jsx";
 // actually goes to /running.
 const Running = lazy(() => import("./pages/Running.jsx"));
 
+// Detail pages are lazy-loaded too — most visits to /cooking or /blog
+// never click into a specific recipe/post, so their (currently small, but
+// growing) body content shouldn't sit in the initial bundle either.
+const RecipeDetail = lazy(() => import("./pages/RecipeDetail.jsx"));
+const PostDetail = lazy(() => import("./pages/PostDetail.jsx"));
+
 function App() {
   return (
     <Routes>
@@ -27,7 +33,23 @@ function App() {
           }
         />
         <Route path="cooking" element={<Cooking />} />
+        <Route
+          path="cooking/:slug"
+          element={
+            <Suspense fallback={<div className="container section">Loading…</div>}>
+              <RecipeDetail />
+            </Suspense>
+          }
+        />
         <Route path="blog" element={<Blog />} />
+        <Route
+          path="blog/:slug"
+          element={
+            <Suspense fallback={<div className="container section">Loading…</div>}>
+              <PostDetail />
+            </Suspense>
+          }
+        />
         <Route path="about" element={<About />} />
         <Route path="*" element={<NotFound />} />
       </Route>

@@ -1,0 +1,20 @@
+/* Shared by RecipeDetail and PostDetail */
+.detail__body {
+  max-width: 680px;
+  font-size: 1.08rem;
+  color: var(--color-charcoal);
+}
+
+.detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: var(--space-md);
+}
+
+.detail__back {
+  display: inline-block;
+  margin-top: var(--space-md);
+}
