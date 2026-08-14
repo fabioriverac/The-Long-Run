@@ -1,7 +1,9 @@
 import PillarsGrid from "../components/PillarsGrid.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import "./About.css";
 
 function About() {
+  useDocumentTitle("About");
   return (
     <>
       <section className="page-header container">

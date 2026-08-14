@@ -1,7 +1,9 @@
 import PostCard from "../components/PostCard.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import posts from "../data/posts.js";
 
 function Blog() {
+  useDocumentTitle("Blog");
   return (
     <>
       <section className="page-header container">

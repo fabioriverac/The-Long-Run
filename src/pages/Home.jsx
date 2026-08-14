@@ -4,11 +4,13 @@ import PillarsGrid from "../components/PillarsGrid.jsx";
 import RunCard from "../components/RunCard.jsx";
 import RecipeCard from "../components/RecipeCard.jsx";
 import FeaturedPost from "../components/FeaturedPost.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { getLatestRuns } from "../data/latestRunsRepository.js";
 import recipes from "../data/recipes.js";
 import posts from "../data/posts.js";
 
 function Home() {
+  useDocumentTitle();
   const latestRuns = getLatestRuns(3);
   const latestRecipes = recipes.slice(0, 3);
   const latestPost = posts[0];
