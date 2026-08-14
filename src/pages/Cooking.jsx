@@ -1,9 +1,10 @@
 import RecipeCard from "../components/RecipeCard.jsx";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
-import recipes from "../data/recipes.js";
+import { getAllRecipes } from "../data/recipesRepository.js";
 
 function Cooking() {
   useDocumentTitle("Cooking");
+  const recipes = getAllRecipes();
   return (
     <>
       <section className="page-header container">

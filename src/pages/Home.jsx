@@ -6,14 +6,14 @@ import RecipeCard from "../components/RecipeCard.jsx";
 import FeaturedPost from "../components/FeaturedPost.jsx";
 import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { getLatestRuns } from "../data/latestRunsRepository.js";
-import recipes from "../data/recipes.js";
-import posts from "../data/posts.js";
+import { getAllRecipes } from "../data/recipesRepository.js";
+import { getAllPosts } from "../data/postsRepository.js";
 
 function Home() {
   useDocumentTitle();
   const latestRuns = getLatestRuns(3);
-  const latestRecipes = recipes.slice(0, 3);
-  const latestPost = posts[0];
+  const latestRecipes = getAllRecipes().slice(0, 3);
+  const latestPost = getAllPosts()[0];
 
   return (
     <>
