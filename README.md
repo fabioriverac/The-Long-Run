@@ -1,4 +1,4 @@
-# Becoming Self
+# The Long Run
 
 A personal lifestyle website built around three pillars: **fitness** (sub-3
 marathon training), **cooking** (recipes and food discoveries), and

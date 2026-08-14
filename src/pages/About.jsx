@@ -6,7 +6,7 @@ function About() {
     <>
       <section className="page-header container">
         <span className="eyebrow">About</span>
-        <h1>Becoming Self</h1>
+        <h1>The Long Run</h1>
         <p className="page-header__lede">
           This is a personal record of building a life around three things I
           care about: showing up for training, cooking food I'm proud of, and
@@ -16,7 +16,7 @@ function About() {
 
       <section className="section container about__body">
         <p>
-          Becoming Self started as a training log and grew into something
+          The Long Run started as a training log and grew into something
           wider. Chasing a sub-3 hour marathon takes more than mileage — it
           takes sleep, food, and a mind that doesn't quit on a bad day. So
           this site holds all three: the runs, the recipes, and the notes on

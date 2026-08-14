@@ -17,7 +17,7 @@ function Navbar() {
     <header className="navbar">
       <div className="container navbar__inner">
         <NavLink to="/" className="navbar__brand" onClick={() => setOpen(false)}>
-          Becoming Self
+          The Long Run
         </NavLink>
 
         <button
