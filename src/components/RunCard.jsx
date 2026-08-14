@@ -1,4 +1,4 @@
-import "./Cards.css";
+import Card from "./Card.jsx";
 import { formatDate } from "../utils/formatDate.js";
 import { formatPace } from "../utils/formatPace.js";
 
@@ -6,18 +6,19 @@ function RunCard({ run }) {
   const { title, date, distance_km: distanceKm, duration_seconds: durationSeconds, type, note } = run;
 
   return (
-    <article className="card">
-      <span className="card__tag">{type}</span>
-      <h3 className="card__title">{title}</h3>
-      <div className="card__meta">
-        <span>{formatDate(date, { month: "short", day: "numeric" })}</span>
-        <span>
-          <strong>{distanceKm} km</strong>
-        </span>
-        <span>{formatPace(distanceKm, durationSeconds)}</span>
-      </div>
-      {note && <p className="card__excerpt">{note}</p>}
-    </article>
+    <Card
+      tag={type}
+      title={title}
+      meta={[
+        // Year included — runs.json can span a year boundary (the log is a
+        // rolling 365-day window, not a calendar year), so "Aug 12" alone
+        // is ambiguous about which August.
+        formatDate(date, { month: "short", day: "numeric", year: "numeric" }),
+        <strong key="distance">{distanceKm} km</strong>,
+        formatPace(distanceKm, durationSeconds),
+      ]}
+      excerpt={note || undefined}
+    />
   );
 }
 

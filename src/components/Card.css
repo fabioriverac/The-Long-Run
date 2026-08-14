@@ -1,4 +1,6 @@
-/* Shared card styling for RunCard, RecipeCard, and PostCard */
+/* Shared card styling — used by RunCard, RecipeCard, PostCard (compact
+   grid layout) and FeaturedPost (the larger .card--featured variant),
+   all of which render through the single Card component. */
 .card {
   background: var(--color-paper);
   border: 1px solid var(--color-border);
@@ -54,4 +56,38 @@
   font-size: 0.95rem;
   margin: 0;
   flex-grow: 1;
+}
+
+/* Featured variant — the single larger spotlight card Home uses for the
+   latest post. No hover lift (unlike the grid cards): it reads as a
+   static spotlight block, not a list item. */
+.card--featured {
+  background: linear-gradient(135deg, var(--color-sand), var(--color-paper));
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.card--featured:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.card__title--featured {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-top: 0.5rem;
+  max-width: 640px;
+}
+
+.card__excerpt--featured {
+  font-size: 1.05rem;
+  max-width: 640px;
+}
+
+.card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
 }
