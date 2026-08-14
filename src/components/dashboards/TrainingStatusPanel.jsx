@@ -46,7 +46,7 @@ function TrainingStatusPanel() {
       <div className="dashboard-panel__head">
         <div>
           <span className="eyebrow">Fitness trend</span>
-          <h3 className="dashboard-panel__title">VO2max &amp; training status</h3>
+          <h2 className="dashboard-panel__title">VO2max &amp; training status</h2>
         </div>
         {latestStatus && <span className="dashboard-panel__badge">{latestStatus}</span>}
       </div>

@@ -95,6 +95,28 @@ button {
   font-family: inherit;
 }
 
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--color-clay-dark);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Visually hidden but reachable by screen readers/AT — used for section
+   headings that would be visually redundant next to the page's h1 but are
+   still needed to keep the heading hierarchy from skipping levels. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .container {
   width: 100%;
   max-width: var(--max-width);
@@ -133,12 +155,16 @@ button {
 }
 
 .btn-primary {
-  background: var(--color-clay);
+  /* clay (the base swatch) against paper text is only 3.89:1 — below the
+     4.5:1 WCAG AA floor for text. clay-dark is the button's *actual*
+     resting color; clay stays reserved for non-text uses (borders,
+     accents) where the lower bar for non-text contrast still applies. */
+  background: var(--color-clay-dark);
   color: var(--color-paper);
 }
 
 .btn-primary:hover {
-  background: var(--color-clay-dark);
+  background: var(--color-rust);
 }
 
 .btn-outline {

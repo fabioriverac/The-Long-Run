@@ -18,6 +18,7 @@ function Home() {
       <Hero />
 
       <section className="section container">
+        <h2 className="sr-only">The three pillars</h2>
         <PillarsGrid />
       </section>
 

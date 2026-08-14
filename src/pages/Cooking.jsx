@@ -15,6 +15,7 @@ function Cooking() {
       </section>
 
       <section className="section container">
+        <h2 className="sr-only">All recipes</h2>
         <div className="card-grid">
           {recipes.map((recipe) => (
             <RecipeCard recipe={recipe} key={recipe.id} />

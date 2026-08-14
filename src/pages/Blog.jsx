@@ -14,6 +14,7 @@ function Blog() {
       </section>
 
       <section className="section container">
+        <h2 className="sr-only">All posts</h2>
         <div className="card-grid">
           {posts.map((post) => (
             <PostCard post={post} key={post.id} />
