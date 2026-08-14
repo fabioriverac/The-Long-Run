@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import "./FeaturedPost.css";
+import Card from "./Card.jsx";
 import { formatDate } from "../utils/formatDate.js";
 
 /**
@@ -7,22 +6,18 @@ import { formatDate } from "../utils/formatDate.js";
  * the latest blog entry.
  */
 function FeaturedPost({ post }) {
-  const { title, category, date, readTime, excerpt } = post;
+  const { slug, title, category, date, readTime, excerpt } = post;
 
   return (
-    <article className="featured-post">
-      <span className="eyebrow">{category}</span>
-      <h3 className="featured-post__title">{title}</h3>
-      <p className="featured-post__excerpt">{excerpt}</p>
-      <div className="featured-post__footer">
-        <span className="card__meta">
-          {formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · {readTime}
-        </span>
-        <Link to="/blog" className="link-more">
-          Read the post
-        </Link>
-      </div>
-    </article>
+    <Card
+      featured
+      to={`/blog/${slug}`}
+      linkLabel="Read the post"
+      tag={category}
+      title={title}
+      excerpt={excerpt}
+      meta={[`${formatDate(date, { month: "long", day: "numeric", year: "numeric" })} · ${readTime}`]}
+    />
   );
 }
 

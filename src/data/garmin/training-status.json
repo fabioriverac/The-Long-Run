@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-08-14",
+    "vo2max": null,
+    "training_status": "productive",
+    "training_readiness_score": null,
+    "race_predictor_5k_seconds": 1226,
+    "race_predictor_10k_seconds": 2588,
+    "race_predictor_half_marathon_seconds": 5992,
+    "race_predictor_marathon_seconds": 13987
+  },
+  {
     "date": "2026-08-13",
     "vo2max": null,
     "training_status": "productive",
@@ -892,16 +902,6 @@
   {
     "date": "2026-05-16",
     "vo2max": null,
-    "training_status": "productive",
-    "training_readiness_score": null,
-    "race_predictor_5k_seconds": null,
-    "race_predictor_10k_seconds": null,
-    "race_predictor_half_marathon_seconds": null,
-    "race_predictor_marathon_seconds": null
-  },
-  {
-    "date": "2026-05-15",
-    "vo2max": 50.9,
     "training_status": "productive",
     "training_readiness_score": null,
     "race_predictor_5k_seconds": null,

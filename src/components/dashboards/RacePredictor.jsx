@@ -58,7 +58,7 @@ function RacePredictor() {
       <div className="dashboard-panel__head">
         <div>
           <span className="eyebrow">Race predictor</span>
-          <h3 className="dashboard-panel__title">Projected marathon time</h3>
+          <h2 className="dashboard-panel__title">Projected marathon time</h2>
         </div>
         <span className="dashboard-panel__badge">
           {marathonGapSeconds > 0 ? `${formatDuration(marathonGapSeconds)} off sub-3` : "Sub-3 pace"}

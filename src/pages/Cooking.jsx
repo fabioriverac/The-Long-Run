@@ -1,7 +1,10 @@
 import RecipeCard from "../components/RecipeCard.jsx";
-import recipes from "../data/recipes.js";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
+import { getAllRecipes } from "../data/recipesRepository.js";
 
 function Cooking() {
+  useDocumentTitle("Cooking");
+  const recipes = getAllRecipes();
   return (
     <>
       <section className="page-header container">
@@ -15,6 +18,7 @@ function Cooking() {
       </section>
 
       <section className="section container">
+        <h2 className="sr-only">All recipes</h2>
         <div className="card-grid">
           {recipes.map((recipe) => (
             <RecipeCard recipe={recipe} key={recipe.id} />

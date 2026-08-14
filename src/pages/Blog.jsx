@@ -1,7 +1,10 @@
 import PostCard from "../components/PostCard.jsx";
-import posts from "../data/posts.js";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
+import { getAllPosts } from "../data/postsRepository.js";
 
 function Blog() {
+  useDocumentTitle("Blog");
+  const posts = getAllPosts();
   return (
     <>
       <section className="page-header container">
@@ -14,6 +17,7 @@ function Blog() {
       </section>
 
       <section className="section container">
+        <h2 className="sr-only">All posts</h2>
         <div className="card-grid">
           {posts.map((post) => (
             <PostCard post={post} key={post.id} />

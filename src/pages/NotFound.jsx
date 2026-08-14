@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 
 function NotFound() {
+  useDocumentTitle("Page not found");
   return (
     <section className="page-header container">
       <span className="eyebrow">404</span>

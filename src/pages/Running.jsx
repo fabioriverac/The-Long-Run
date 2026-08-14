@@ -2,9 +2,11 @@ import RunCard from "../components/RunCard.jsx";
 import RacePredictor from "../components/dashboards/RacePredictor.jsx";
 import TrainingStatusPanel from "../components/dashboards/TrainingStatusPanel.jsx";
 import WeeklyVolumeChart from "../components/dashboards/WeeklyVolumeChart.jsx";
+import { useDocumentTitle } from "../hooks/useDocumentTitle.js";
 import { getAllRuns } from "../data/runsRepository.js";
 
 function Running() {
+  useDocumentTitle("Running");
   const runs = getAllRuns();
 
   return (

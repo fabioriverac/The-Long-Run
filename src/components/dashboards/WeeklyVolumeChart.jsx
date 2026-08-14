@@ -18,7 +18,7 @@ function WeeklyVolumeChart() {
       <div className="dashboard-panel__head">
         <div>
           <span className="eyebrow">Volume</span>
-          <h3 className="dashboard-panel__title">Weekly mileage</h3>
+          <h2 className="dashboard-panel__title">Weekly mileage</h2>
         </div>
       </div>
 
