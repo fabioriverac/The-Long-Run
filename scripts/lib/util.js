@@ -35,3 +35,27 @@ export function toNumberOrNull(value) {
   const num = Number(value);
   return Number.isNaN(num) ? null : num;
 }
+
+/**
+ * Coerce a value expected to always be present (an id, a distance, a
+ * duration — fields the downstream dedup/window/pace logic can't function
+ * without). Unlike toNumberOrNull, a missing or non-numeric value here is a
+ * data problem worth stopping the sync for, not a null to carry forward
+ * silently — `Number(undefined)` is NaN, and NaN as a dedup key collapses
+ * every record missing that field into one, silently dropping the rest.
+ */
+export function requireNumber(value, fieldName) {
+  const num = Number(value);
+  if (value === null || value === undefined || value === "" || Number.isNaN(num)) {
+    throw new Error(`Missing or invalid required field "${fieldName}": ${JSON.stringify(value)}`);
+  }
+  return num;
+}
+
+/** Same as requireNumber, but for a required non-empty string field. */
+export function requireString(value, fieldName) {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`Missing or invalid required field "${fieldName}": ${JSON.stringify(value)}`);
+  }
+  return value;
+}

@@ -20,6 +20,6 @@ jobs:
 
       - run: npm run lint
 
-      # No test script exists yet (see SESSIONS.md) — build is the main
-      # regression check for now, same reasoning as becoming-self's CI.
+      - run: npm test
+
       - run: npm run build
