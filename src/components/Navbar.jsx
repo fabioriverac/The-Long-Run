@@ -38,7 +38,7 @@ function Navbar() {
     <header className="navbar">
       <div className="container navbar__inner">
         <NavLink to="/" className="navbar__brand" onClick={() => setOpen(false)}>
-          The Long Run
+          <img src="/the-long-run-logo.svg" alt="The Long Run" />
         </NavLink>
 
         <button

@@ -95,7 +95,7 @@ function RacePredictor() {
               type="monotone"
               dataKey="marathonSeconds"
               stroke={CHART_COLOR_TRAINING}
-              strokeWidth={2}
+              strokeWidth={1.5}
               dot={false}
               activeDot={{ r: 4 }}
             />

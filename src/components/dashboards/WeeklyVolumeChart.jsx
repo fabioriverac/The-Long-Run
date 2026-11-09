@@ -35,7 +35,7 @@ function WeeklyVolumeChart() {
               formatter={(value) => [`${value} km`, "Distance"]}
               labelFormatter={(d) => `Week of ${formatDate(d, { month: "short", day: "numeric" })}`}
             />
-            <Bar dataKey="distanceKm" fill={CHART_COLOR_TRAINING} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="distanceKm" fill={CHART_COLOR_TRAINING} />
           </BarChart>
         </ResponsiveContainer>
       ) : (

@@ -14,8 +14,9 @@ import "./Card.css";
  *   Omit for content with no detail page (runs).
  * @param {string} [tag] - small label (run type / recipe category / post
  *   category).
- * @param {"olive"|"clay"} [tagVariant] - pill color for the grid variant's
- *   tag; the featured variant always renders its tag as an eyebrow instead.
+ * @param {"olive"|"clay"} [tagVariant] - hairline weight for the grid
+ *   variant's tag (both monochrome; clay uses a full black rule). The
+ *   featured variant always renders its tag as an eyebrow instead.
  * @param {string} title
  * @param {Array<import("react").ReactNode>} [meta] - short meta
  *   items (date, distance, pace, read time, …), rendered as a gapped row.

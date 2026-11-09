@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 function Footer() {
@@ -7,7 +8,9 @@ function Footer() {
     <footer className="footer">
       <div className="container footer__inner">
         <div>
-          <p className="footer__brand">The Long Run</p>
+          <Link to="/" className="footer__brand">
+            <img src="/the-long-run-logo.svg" alt="The Long Run" />
+          </Link>
           <p className="footer__tagline">
             Miles, meals, and the habits in between.
           </p>
