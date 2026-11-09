@@ -65,6 +65,19 @@ export function createRepository(storage) {
     async ensureSeed(now = new Date()) {
       const marker = await storage.get("meta", "seed");
       if (marker?.version >= SEED_VERSION) return false;
+      if (marker?.version >= 1) {
+        const bundle = buildCoachSeed(now);
+        for (const exercise of bundle.tables.exercises) {
+          const existing = await storage.get("exercises", exercise.id);
+          if (!existing) await saveRecord("exercises", exercise, { sync: true, updatedAt: exercise.updatedAt });
+        }
+        await storage.put("meta", {
+          id: "seed",
+          version: SEED_VERSION,
+          seededAt: marker.seededAt || new Date(now).toISOString(),
+        });
+        return true;
+      }
       const bundle = buildCoachSeed(now);
       for (const [table, rows] of Object.entries(bundle.tables)) {
         for (const row of rows) {

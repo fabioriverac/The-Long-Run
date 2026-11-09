@@ -112,12 +112,14 @@ server. JSON export and import live on the More tab. If cloud sync isn't
 configured the app still opens and says **Cloud sync not set up yet**.
 
 The seeded programme is Coach's 8 Nov 2026 template: Monday A, Thursday B,
-Sunday C (light). It is editable. Upper body starts as push-ups only; add
-other exercises from the library. Progression adds reps (or time, or steps)
-first, then the smallest load, one exercise at a time, and only after
-repeated well-tolerated sessions whose next morning was not worse. A new
-calendar week does not change the dose. There is no max test and no failure
-work. Pain at or under 3/10 is not treated as clearance.
+Sunday C (light). It is editable. The library is that running-support work
+plus a few bodyweight upper-body exercises. No machines. Target RIR steps
+down across the block (3, 2, 1, 0) and the last week is a deload. After a
+muscle's last set you log joint pain, pump, and workload. Soreness is asked
+at the start of the next session for that muscle. Those answers move the
+next week's set count by one at most. Joint pain holds or reduces the load
+and offers a swap. Load itself still moves one small step at a time, and
+only after the rep range is full.
 
 ### Cloud sync
 

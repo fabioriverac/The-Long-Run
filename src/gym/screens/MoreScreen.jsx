@@ -68,12 +68,6 @@ export default function MoreScreen() {
         </div>
       </article>
       <article className="gym-card">
-        <h2>Safety reminder</h2>
-        <p className="gym-help">
-          Stop on sharp or increasing pain, limping, or a loss of control. A score of 3/10 or under is not permission to add weight. Focal bone pain, not being able to bear weight, or swelling that stands out needs a clinician. Heel or inner-ankle symptoms that hang around are a reason to see a physio.
-        </p>
-      </article>
-      <article className="gym-card">
         <h2>Reset this device</h2>
         <p className="gym-help">Type reset to wipe the browser log and restore Coach's template. A cloud copy, if you were signed in, can sync back down.</p>
         <label className="gym-field">

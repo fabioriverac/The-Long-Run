@@ -21,7 +21,7 @@ export default function ExerciseProgressScreen() {
   useDocumentTitle(progress?.exercise.name || "Exercise");
   if (!view) return <p className="gym-loading">Loading your log…</p>;
   if (!progress) return <p className="gym-error">That exercise isn't in the library.</p>;
-  const { exercise, points, useE1rm, latest, delta, sessions, jointPain, quietPain, mornings } = progress;
+  const { exercise, points, useE1rm, latest, delta, sessions, feedback } = progress;
   return (
     <section>
       <Link to="/gym/exercises" className="gym-back">‹ Exercises</Link>
@@ -86,19 +86,15 @@ export default function ExerciseProgressScreen() {
           </tbody>
         </table>
       )}
-      <div className="gym-row"><h2>Joint-pain check-ins</h2></div>
-      <div className="gym-chips">
-        {jointPain.length === 0 ? <span className="gym-muted">None yet.</span> : jointPain.map((value, index) => (
-          <span key={`${value}-${index}`} className={`gym-chip ${value === "none" ? "" : "is-ok"}`}>{value === "a_lot" ? "A lot" : value === "none" ? "None" : value}</span>
-        ))}
-      </div>
-      {quietPain ? <p className="gym-note">No pain reported in your last 3 sessions.</p> : null}
-      <div className="gym-row"><h2>Next-morning trend</h2></div>
-      <div className="gym-chips">
-        {mornings.length === 0 ? <span className="gym-muted">No check-ins yet.</span> : mornings.map((value, index) => (
-          <span key={`${value}-${index}`} className={`gym-chip ${value === "worse" || value === "much_worse" ? "is-bad" : ""}`}>{value === "missing" ? "Missing" : value}</span>
-        ))}
-      </div>
+      <div className="gym-row"><h2>Feedback</h2></div>
+      {feedback.length === 0 ? <p className="gym-note">Joint pain, pump, workload, and soreness show up here after a session.</p> : feedback.map((row) => (
+        <div key={row.id} className="gym-chips">
+          <span className={`gym-chip ${row.jointPain && row.jointPain !== "none" ? "is-bad" : ""}`}>Joints {row.jointPain || "—"}</span>
+          <span className="gym-chip">Pump {row.pump || "—"}</span>
+          <span className="gym-chip">Work {row.workload || "—"}</span>
+          <span className="gym-chip">Soreness {row.soreness || "—"}</span>
+        </div>
+      ))}
       {exercise.custom ? (
         <button
           type="button"

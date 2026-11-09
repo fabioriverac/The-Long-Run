@@ -260,9 +260,66 @@ body:has(.gym) {
 .gym-sets__head,
 .gym-set {
   display: grid;
-  grid-template-columns: 28px 1fr 1fr 42px 46px;
+  grid-template-columns: 28px 1fr 1fr 46px;
   gap: 8px;
   align-items: center;
+}
+
+.gym-muscle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 4px;
+  font-size: 15px;
+}
+
+.gym-muscle__bar {
+  width: 4px;
+  height: 16px;
+  border-radius: 99px;
+}
+
+.gym-muscle span:last-child {
+  margin-left: auto;
+  color: var(--gym-muted);
+  font-size: 13px;
+}
+
+.gym-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 12px;
+  padding-bottom: 4px;
+}
+
+.gym-filters button {
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid #3a3a42;
+  background: transparent;
+  color: var(--gym-muted);
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.gym-filters button.is-on {
+  background: #2a2a30;
+  color: white;
+  border-color: transparent;
+}
+
+.gym-weekcells {
+  display: flex;
+  gap: 4px;
+}
+
+.gym-weekcells i {
+  width: 22px;
+  height: 16px;
+  border-radius: 4px;
+  background: #2a2a30;
+  display: block;
 }
 
 .gym-sets__head {

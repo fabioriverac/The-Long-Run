@@ -7,10 +7,11 @@ export default function ExercisesScreen() {
   const { view, actions } = useGymData();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [muscle, setMuscle] = useState("All");
   const [draft, setDraft] = useState({ name: "", muscle: "", equipment: "bodyweight", unit: "reps", perSide: false, regression: "", notes: "" });
   useDocumentTitle("Exercises");
   const groups = useMemo(() => {
-    const filtered = (view?.exercises || []).filter((exercise) => exercise.name.toLowerCase().includes(query.toLowerCase()));
+    const filtered = (view?.exercises || []).filter((exercise) => exercise.equipment !== "machine" && exercise.name.toLowerCase().includes(query.toLowerCase()) && (muscle === "All" || exercise.muscle === muscle));
     const map = new Map();
     for (const exercise of filtered) {
       const list = map.get(exercise.muscle) || [];
@@ -18,12 +19,17 @@ export default function ExercisesScreen() {
       map.set(exercise.muscle, list);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [view, query]);
+  }, [view, query, muscle]);
   if (!view) return <p className="gym-loading">Loading your log…</p>;
   return (
     <section>
       <h1 className="gym-title">Exercises</h1>
-      <p className="gym-note">Upper body is push-ups only until you add your own. Regressions are noted on each lift.</p>
+      <p className="gym-note">Coach's running-support work, plus bodyweight upper body. No machines.</p>
+      <div className="gym-filters">
+        {["All", ...new Set((view?.exercises || []).map((exercise) => exercise.muscle))].map((item) => (
+          <button key={item} type="button" className={muscle === item ? "is-on" : undefined} onClick={() => setMuscle(item)}>{item}</button>
+        ))}
+      </div>
       <label className="gym-field">
         <span>Search</span>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Calf, push-up, hip…" />
@@ -56,8 +62,7 @@ export default function ExercisesScreen() {
               <select value={draft.equipment} onChange={(event) => setDraft({ ...draft, equipment: event.target.value })}>
                 <option value="bodyweight">Bodyweight</option>
                 <option value="band">Band</option>
-                <option value="dumbbell">Dumbbell</option>
-                <option value="other">Other</option>
+                <option value="dumbbell">Light dumbbell</option>
               </select>
             </label>
             <label className="gym-field">

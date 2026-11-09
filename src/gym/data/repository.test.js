@@ -175,7 +175,7 @@ describe("progress view", () => {
     expect(view.stats.completed).toBe(1);
     expect(view.grid[0].cells[0].state).toBe("done");
     const calfSuggestion = view.suggestions["meso-plan-a-ex-sl-calf"].suggestion;
-    expect(calfSuggestion.action).toBe("hold");
-    expect(calfSuggestion.reason).not.toBe("add_load");
+    expect(calfSuggestion.action).toBe("add_load");
+    expect(calfSuggestion.next.loadKg).toBe(1);
   });
 });

@@ -4,6 +4,7 @@ import { createIndexedDbStorage } from "./data/indexedDbStorage.js";
 import { createRepository } from "./data/repository.js";
 import { buildView } from "./lib/derive.js";
 import { mondayOnOrBefore, todayISO, weekIndex } from "./lib/dates.js";
+import { plansAfterFeedback, rirForWeek } from "./lib/progression.js";
 import { newExercise, newId } from "./lib/types.js";
 import { loginRequest, logoutRequest, pushAndPull } from "./sync/client.js";
 import { SYNC_NOT_READY } from "./sync/messages.js";
@@ -159,7 +160,7 @@ export function GymDataProvider({ children }) {
           });
         });
       },
-      async saveFeedback({ day, exerciseId, draft }) {
+      async setWorkoutNotes(day, notes) {
         await mutate(async () => {
           const all = await repository.loadAll();
           const meso = activeMeso(all);
@@ -167,55 +168,81 @@ export function GymDataProvider({ children }) {
           const workoutId = `${meso.id}:${day.id}:${today}`;
           const existing = all.workouts.find((row) => row.id === workoutId);
           const now = new Date().toISOString();
-          if (!existing) {
-            await repository.saveRecord("workouts", {
-              id: workoutId,
-              mesoId: meso.id,
-              trainingDayId: day.id,
-              weekIndex: weekIndex(meso.startedOn, today),
-              date: today,
-              startedAt: now,
-              finishedAt: null,
-              status: "in_progress",
-              notes: "",
-              sample: false,
-              deletedAt: null,
-              serverReceivedAt: null,
-            });
-          }
-          await repository.saveRecord("feedback", {
-            id: `${workoutId}:${exerciseId}`,
-            workoutId,
-            exerciseId,
-            jointPain: draft.jointPain,
-            soreness: draft.soreness,
-            pump: draft.pump,
-            workload: draft.workload,
+          await repository.saveRecord("workouts", {
+            id: workoutId,
+            mesoId: meso.id,
+            trainingDayId: day.id,
+            weekIndex: weekIndex(meso.startedOn, today),
+            date: today,
+            startedAt: existing?.startedAt || now,
+            finishedAt: existing?.finishedAt || null,
+            status: existing?.status || "in_progress",
+            notes,
             sample: false,
             deletedAt: null,
             serverReceivedAt: null,
           });
         });
       },
-      async saveSafety({ workoutId, kind, draft }) {
+      async saveMuscleFeedback({ workoutId, muscle, patch, day, apply }) {
         await mutate(async () => {
-          await repository.saveRecord("safetyChecks", {
-            id: `${workoutId}:${kind}`,
-            workoutId,
-            kind,
-            painLocation: draft.painLocation === "None" ? "" : draft.painLocation || "",
-            painDuring: kind === "session" ? Number(draft.painDuring) : null,
-            painQuality: draft.painQuality || "none",
-            firstStepVsBaseline: kind === "next_morning" ? draft.firstStepVsBaseline : null,
-            swelling: draft.swelling || "none",
-            gaitChange: draft.gaitChange || "none",
-            lossOfControl: Boolean(draft.lossOfControl),
-            focalBonePain: Boolean(draft.focalBonePain),
-            notes: draft.notes || "",
+          const all = await repository.loadAll();
+          const id = `${workoutId}:${muscle}`;
+          const existing = all.feedback.find((row) => row.id === id);
+          const saved = await repository.saveRecord("feedback", {
+            jointPain: "",
+            soreness: "",
+            pump: "",
+            workload: "",
+            exerciseId: null,
+            appliedDelta: null,
             sample: false,
             deletedAt: null,
             serverReceivedAt: null,
+            ...existing,
+            ...patch,
+            id,
+            workoutId,
+            muscle,
           });
+          if (!apply || !day) return;
+          const meso = activeMeso(all);
+          const exercises = Object.fromEntries(all.exercises.map((row) => [row.id, row]));
+          const plans = all.plannedExercises.filter((row) => row.trainingDayId === day.id && !row.deletedAt && exercises[row.exerciseId]?.muscle === muscle);
+          const template = all.mesocycles.find((row) => row.kind === "template" && !row.deletedAt);
+          const templateDay = all.trainingDays.find((row) => row.mesoId === template?.id && row.label === day.label && !row.deletedAt);
+          const templatePlans = all.plannedExercises.filter((row) => row.trainingDayId === templateDay?.id && !row.deletedAt);
+          const templateSets = {};
+          for (const plan of templatePlans) {
+            templateSets[plan.exerciseId] = plan.setsMin;
+            templateSets[`${plan.exerciseId}:max`] = plan.setsMax;
+          }
+          const performances = {};
+          for (const plan of plans) {
+            const latest = all.sets
+              .filter((set) => set.exerciseId === plan.exerciseId && set.completed && !set.deletedAt && !set.sample)
+              .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+            if (latest) performances[plan.exerciseId] = latest;
+          }
+          const week = rirForWeek(weekIndex(meso?.startedOn, today), meso?.weeks || 5, meso?.includesDeload !== false);
+          const result = plansAfterFeedback(plans, exercises, {
+            jointPain: saved.jointPain,
+            soreness: saved.soreness,
+            pump: saved.pump,
+            workload: saved.workload,
+            deload: week.deload,
+            performances,
+            templateSets,
+            appliedDelta: Number.isFinite(existing?.appliedDelta) ? existing.appliedDelta : 0,
+          });
+          for (const plan of result.plans) {
+            const stored = { ...plan };
+            delete stored.recommendation;
+            await repository.saveRecord("plannedExercises", stored);
+          }
+          if (result.appliedDelta !== saved.appliedDelta) {
+            await repository.saveRecord("feedback", { ...saved, appliedDelta: result.appliedDelta });
+          }
         });
       },
       async updatePlanned(plan, patch) {
@@ -284,35 +311,78 @@ export function GymDataProvider({ children }) {
           await repository.copyTemplateOntoMeso(template.id, meso.id);
         });
       },
-      async startMeso() {
+      async startMeso(draft) {
         await mutate(async () => {
           const all = await repository.loadAll();
           const template = all.mesocycles.find((meso) => meso.kind === "template" && !meso.deletedAt);
           const current = activeMeso(all);
-          if (!template) return;
           if (current) await repository.saveRecord("mesocycles", { ...current, status: "completed" });
           const id = newId("meso");
+          const weeks = Math.max(2, Number(draft?.weeks) || template?.weeks || 5);
           await repository.saveRecord("mesocycles", {
-            ...template,
+            ...(template || {}),
             id,
-            name: "Stronger for the long run",
+            name: draft?.name || "New mesocycle",
             kind: "meso",
-            templateId: template.id,
+            templateId: template?.id || null,
             status: "active",
+            weeks,
+            includesDeload: draft ? draft.includesDeload !== false : template?.includesDeload !== false,
+            focus: template?.focus || "Return phase",
+            notes: template?.notes || "",
             startedOn: mondayOnOrBefore(new Date()),
             deletedAt: null,
           });
-          const days = all.trainingDays.filter((day) => day.mesoId === template.id && !day.deletedAt);
-          for (const day of days) {
+          const sourceDays = draft?.days || all.trainingDays
+            .filter((day) => day.mesoId === template?.id && !day.deletedAt)
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((day) => ({
+              ...day,
+              exerciseIds: all.plannedExercises.filter((plan) => plan.trainingDayId === day.id && !plan.deletedAt).map((plan) => plan.exerciseId),
+            }));
+          for (const [index, day] of sourceDays.entries()) {
             const dayId = newId("day");
-            await repository.saveRecord("trainingDays", { ...day, id: dayId, mesoId: id, deletedAt: null });
-            const plans = all.plannedExercises.filter((plan) => plan.trainingDayId === day.id && !plan.deletedAt);
-            for (const plan of plans) {
+            await repository.saveRecord("trainingDays", {
+              id: dayId,
+              mesoId: id,
+              label: day.label,
+              name: day.name,
+              weekday: day.weekday,
+              timeLabel: day.timeLabel || "18:30",
+              focus: day.focus || "",
+              targetRir: 3,
+              restMinSeconds: 60,
+              restMaxSeconds: 120,
+              sortOrder: index,
+              isLight: Boolean(day.isLight),
+              warmup: day.warmup || "",
+              deletedAt: null,
+              serverReceivedAt: null,
+            });
+            const ids = day.exerciseIds || [];
+            for (const [sortOrder, exerciseId] of ids.entries()) {
+              const templatePlan = all.plannedExercises.find((plan) => plan.exerciseId === exerciseId && !plan.deletedAt);
+              const exercise = all.exercises.find((row) => row.id === exerciseId);
               await repository.saveRecord("plannedExercises", {
-                ...plan,
                 id: newId("plan"),
                 trainingDayId: dayId,
+                exerciseId,
+                sortOrder,
+                setsMin: templatePlan?.setsMin || 2,
+                setsMax: templatePlan?.setsMax || 3,
+                repsMin: templatePlan?.repsMin || 8,
+                repsMax: templatePlan?.repsMax || 12,
+                targetDose: templatePlan?.targetDose || templatePlan?.repsMin || 8,
+                targetRir: 3,
+                perSide: Boolean(exercise?.perSide),
+                optional: false,
+                laterOption: false,
+                notes: templatePlan?.notes || "",
+                variation: exercise?.defaultVariation || "standard",
+                loadKg: null,
+                loadLabel: exercise?.equipment === "band" ? "light" : "bodyweight",
                 deletedAt: null,
+                serverReceivedAt: null,
               });
             }
           }

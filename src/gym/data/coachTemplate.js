@@ -5,7 +5,7 @@ const WARMUP =
   "Warm up with an easy walk or bike. Mobility: knee-to-wall, ankle circles, hip rotations, gentle calf and plantar-fascia stretch — 1–2 sets of 8–10 reps or 20–30 seconds.";
 
 const PLAN_NOTE =
-  "Coach's template from 8 Nov 2026. Doses are a proposal, not physio clearance. Written around the left plantar fascia, posterior tibialis, and hip/ITB. Saturday is the long run — no heavy legs before it. Nothing in this plan escalates because a week number changed.";
+  "Coach's template from 8 Nov 2026. Bodyweight and light loads, written around the left plantar fascia, posterior tibialis, and hip/ITB. Saturday is the long run. Target RIR steps down across the block, then eases off on the deload. Load only moves one small step at a time.";
 
 function exercise(row) {
   return {
@@ -63,7 +63,7 @@ export const COACH_EXERCISES = [
     perSide: true,
     defaultVariation: "bodyweight",
     sideNote: "per side",
-    notes: "Bodyweight first. A dumbbell is the later, smallest load — only after reps are easy and the next morning stays calm.",
+    notes: "Bodyweight first. A dumbbell is the later, smallest load — one kilogram, and only after the reps are full.",
     cues: "Hands on a support if balance goes.",
   }),
   exercise({
@@ -198,7 +198,37 @@ export const COACH_EXERCISES = [
     ],
     defaultVariation: "incline",
     regression: { variation: "wall", label: "Wall push-up" },
-    notes: "The only upper-body exercise agreed for now. Start where 6 reps still leaves about 2–3 RIR — wall, incline, or floor. Add your own lifts when you and Coach agree.",
+    notes: "Wall, incline, or floor. The only upper-body exercise in the starting session. Swap in another bodyweight option when you want one.",
+  }),
+  exercise({
+    id: "ex-pike-pushup",
+    name: "Pike push-up",
+    muscle: "Shoulders",
+    equipment: "bodyweight",
+    unit: "reps",
+    defaultVariation: "pike",
+    regression: { variation: "incline", label: "Incline push-up" },
+    notes: "Hips high. Easier if your hands are on a step.",
+  }),
+  exercise({
+    id: "ex-inverted-row",
+    name: "Inverted row",
+    muscle: "Back",
+    equipment: "bodyweight",
+    unit: "reps",
+    defaultVariation: "bar",
+    regression: { variation: "higher-bar", label: "Higher bar" },
+    notes: "Body in a straight line under a bar or a sturdy table. No machine.",
+  }),
+  exercise({
+    id: "ex-chair-dip",
+    name: "Chair dip",
+    muscle: "Triceps",
+    equipment: "bodyweight",
+    unit: "reps",
+    defaultVariation: "chair",
+    regression: { variation: "bent-knee", label: "Bent knees closer in" },
+    notes: "Hands on a stable chair. Keep the shoulders away from the ears.",
   }),
 ];
 

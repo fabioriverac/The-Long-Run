@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
-import { FeedbackSheet, SafetySheet } from "../components/sheets.jsx";
+import { MuscleFeedbackSheet, SorenessSheet, SwapSheet } from "../components/sheets.jsx";
 import { CheckIcon } from "../components/ui.jsx";
 import { useGymData } from "../useGymData.js";
 import { formatLongDate } from "../lib/dates.js";
-import { doseSummary, selectSession, sessionHeadline, shouldShowSuggestion, unitLabel } from "../lib/derive.js";
-import { regressPlan } from "../lib/progression.js";
+import { muscleColor, selectSession, sessionHeadline, setsThisWeek, unitLabel } from "../lib/derive.js";
 import { SYNC_NOT_READY } from "../sync/messages.js";
 
 function doseFields(unit, value) {
@@ -17,15 +16,26 @@ function doseFields(unit, value) {
   };
 }
 
+function parseSkipped(notes) {
+  const line = String(notes || "").split("\n").find((item) => item.startsWith("skipped:"));
+  return new Set(line ? line.slice(8).split(",").filter(Boolean) : []);
+}
+
+function withSkipped(notes, ids) {
+  const rest = String(notes || "")
+    .split("\n")
+    .filter((item) => item && !item.startsWith("skipped:"));
+  if (ids.size) rest.push(`skipped:${[...ids].join(",")}`);
+  return rest.join("\n");
+}
+
 function SetRow({ number, record, plan, unit, onCommit }) {
   const [load, setLoad] = useState(record?.loadKg ?? "");
   const [dose, setDose] = useState(record ? record.reps ?? record.seconds ?? record.steps ?? "" : "");
-  const [rir, setRir] = useState(record?.rir ?? plan.targetRir);
   useEffect(() => {
     setLoad(record?.loadKg ?? "");
     setDose(record ? record.reps ?? record.seconds ?? record.steps ?? "" : "");
-    setRir(record?.rir ?? plan.targetRir);
-  }, [record, plan.targetRir]);
+  }, [record]);
   const placeholderDose = String(plan.targetDose ?? "");
   const placeholderLoad = plan.loadLabel && plan.loadLabel !== "bodyweight" && plan.loadLabel !== "dumbbell" ? plan.loadLabel : "BW";
 
@@ -35,7 +45,7 @@ function SetRow({ number, record, plan, unit, onCommit }) {
     onCommit({
       loadKg: Number.isFinite(typedLoad) ? typedLoad : null,
       loadLabel: Number.isFinite(typedLoad) && typedLoad > 0 ? "dumbbell" : plan.loadLabel || "bodyweight",
-      rir: rir === "" ? plan.targetRir : Number(rir),
+      rir: plan.targetRir,
       variation: plan.variation,
       completed,
       ...doseFields(unit, doseNumber),
@@ -61,14 +71,6 @@ function SetRow({ number, record, plan, unit, onCommit }) {
         onChange={(event) => setDose(event.target.value)}
         onBlur={() => record && commit(Boolean(record.completed))}
       />
-      <input
-        className="gym-rir-input"
-        aria-label={`Set ${number} reps in reserve`}
-        inputMode="numeric"
-        value={rir}
-        onChange={(event) => setRir(event.target.value)}
-        onBlur={() => record && commit(Boolean(record.completed))}
-      />
       <button
         type="button"
         className={`gym-check ${record?.completed ? "is-on" : ""}`}
@@ -82,238 +84,261 @@ function SetRow({ number, record, plan, unit, onCommit }) {
   );
 }
 
-function ExerciseCard({ plan, exercise, sets, entry, sampleOn, onCommit, onFeedback, onUpdate, onRegress }) {
-  const numbers = [];
-  const highest = sets.reduce((max, set) => Math.max(max, set.setNumber || 0), 0);
-  const count = Math.max(plan.setsMin, highest);
-  for (let index = 1; index <= count; index += 1) numbers.push(index);
-  const suggestion = entry?.suggestion;
-  const show = shouldShowSuggestion(suggestion);
-  return (
-    <article className="gym-card">
-      <div className="gym-card__head">
-        <div>
-          <p className="gym-eyebrow">{exercise.muscle}</p>
-          <h2>{exercise.name}</h2>
-          <p className="gym-dose">
-            {doseSummary(plan, exercise)} · target {plan.targetRir} RIR
-          </p>
-        </div>
-        <details className="gym-menu">
-          <summary aria-label={`Actions for ${exercise.name}`}>···</summary>
-          <div className="gym-menu__pop">
-            <button type="button" onClick={onFeedback}>Feedback</button>
-            <button type="button" onClick={onRegress}>Use the regression</button>
-          </div>
-        </details>
-      </div>
-      {exercise.notes ? <p className="gym-help">{exercise.notes}</p> : null}
-      {exercise.variationLadder?.length > 1 ? (
-        <label className="gym-inline">
-          <span>Variation</span>
-          <select value={plan.variation || exercise.defaultVariation} onChange={(event) => onUpdate({ variation: event.target.value })}>
-            {exercise.variationLadder.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      {show ? (
-        <div className={`gym-suggest ${suggestion.action === "stop" ? "is-stop" : ""}`}>
-          <p>{suggestion.text}</p>
-          {suggestion.clinician ? null : null}
-          {suggestion.next && !sampleOn ? (
-            <button type="button" className="gym-text-btn" onClick={() => onUpdate(suggestion.next)}>
-              Use this next time
-            </button>
-          ) : null}
-          {suggestion.next && sampleOn ? <p className="gym-hint">Turn off sample data before changing your plan.</p> : null}
-        </div>
-      ) : null}
-      <div className="gym-sets">
-        <div className="gym-sets__head">
-          <span>Set</span>
-          <span>Kg</span>
-          <span>{unitLabel(exercise.unit)}</span>
-          <span>RIR</span>
-          <span />
-        </div>
-        {numbers.map((number) => (
-          <SetRow
-            key={number}
-            number={number}
-            record={sets.find((set) => set.setNumber === number)}
-            plan={plan}
-            unit={exercise.unit}
-            onCommit={(patch) => onCommit(number, patch)}
-          />
-        ))}
-      </div>
-      {count < plan.setsMax ? (
-        <button type="button" className="gym-add" onClick={() => onCommit(count + 1, { completed: false, ...doseFields(exercise.unit, plan.targetDose), rir: plan.targetRir, variation: plan.variation, loadKg: plan.loadKg, loadLabel: plan.loadLabel })}>
-          + Add set
-        </button>
-      ) : null}
-    </article>
-  );
+function groupsFrom(plans, exercisesById, skipped) {
+  const groups = [];
+  for (const plan of plans) {
+    if (plan.laterOption || skipped.has(plan.id)) continue;
+    const exercise = exercisesById[plan.exerciseId];
+    if (!exercise) continue;
+    let group = groups.find((item) => item.muscle === exercise.muscle);
+    if (!group) {
+      group = { muscle: exercise.muscle, items: [] };
+      groups.push(group);
+    }
+    group.items.push({ plan, exercise });
+  }
+  return groups;
 }
 
 export default function WorkoutScreen() {
   const { ready, error, today, view, actions, sync } = useGymData();
   const [overrideId, setOverrideId] = useState(null);
-  const [feedbackPlanId, setFeedbackPlanId] = useState(null);
-  const [safetyOpen, setSafetyOpen] = useState(false);
-  const [morningOpen, setMorningOpen] = useState(false);
+  const [sorenessMuscle, setSorenessMuscle] = useState(null);
+  const dismissedSoreness = useRef(new Set());
+  const dismissedFeedback = useRef(new Set());
+  const [feedbackMuscle, setFeedbackMuscle] = useState(null);
+  const [swap, setSwap] = useState(null);
+  const [notesPlan, setNotesPlan] = useState(null);
+  const [noteDraft, setNoteDraft] = useState("");
   useDocumentTitle("Gym");
 
   const selection = view ? selectSession(view.days, today) : { day: null, relation: "rest" };
   const day = view?.days.find((item) => item.id === overrideId) || selection.day;
   const logging = Boolean(overrideId) || selection.relation === "today";
   const workout = useMemo(() => {
-    if (!view || !day) return null;
-    return view.workouts.find((row) => row.trainingDayId === day.id && row.date === today && row.mesoId === view.active?.id) || null;
+    if (!view || !day || !view.active) return null;
+    return view.workouts.find((row) => row.trainingDayId === day.id && row.date === today && row.mesoId === view.active.id) || null;
   }, [view, day, today]);
+  const skipped = parseSkipped(workout?.notes);
+
+  const groups = useMemo(
+    () => (view && day ? groupsFrom(view.plannedByDay[day.id] || [], view.exercisesById, parseSkipped(workout?.notes)) : []),
+    [view, day, workout],
+  );
+  const weekTarget = useMemo(() => view?.weekTarget || { rir: 3, deload: false }, [view]);
+
+  const dueSoreness = useMemo(() => {
+    if (!view || !logging || !day) return [];
+    const hidden = parseSkipped(workout?.notes);
+    const muscles = [];
+    for (const plan of view.plannedByDay[day.id] || []) {
+      if (plan.laterOption || hidden.has(plan.id)) continue;
+      const muscle = view.exercisesById[plan.exerciseId]?.muscle;
+      if (muscle && !muscles.includes(muscle)) muscles.push(muscle);
+    }
+    const due = [];
+    for (const muscle of muscles) {
+      const previous = [...view.workouts]
+        .filter((row) => row.status === "completed" && row.date < today)
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .find((row) => view.sets.some((set) => set.workoutId === row.id && set.completed && view.exercisesById[set.exerciseId]?.muscle === muscle));
+      if (!previous) continue;
+      const feedback = view.feedback.find((row) => row.workoutId === previous.id && row.muscle === muscle);
+      if (!feedback?.soreness) due.push({ muscle, workoutId: previous.id, feedback });
+    }
+    return due;
+  }, [view, logging, day, today, workout]);
+
+  useEffect(() => {
+    if (sorenessMuscle) return;
+    const next = dueSoreness.find((item) => !dismissedSoreness.current.has(item.muscle));
+    if (next) setSorenessMuscle(next);
+  }, [dueSoreness, sorenessMuscle]);
+
+  useEffect(() => {
+    if (!view || !workout || feedbackMuscle || sorenessMuscle) return;
+    const ready = groups.find((group) => {
+      const complete = group.items.every(({ plan }) => {
+        const logged = view.sets.filter((set) => set.workoutId === workout.id && set.plannedExerciseId === plan.id && set.completed);
+        return logged.length >= setsThisWeek(plan, weekTarget).min;
+      });
+      const existing = view.feedback.find((row) => row.workoutId === workout.id && row.muscle === group.muscle);
+      return complete && !existing?.jointPain && !dismissedFeedback.current.has(group.muscle);
+    });
+    if (ready) setFeedbackMuscle(ready.muscle);
+  }, [view, workout, groups, feedbackMuscle, sorenessMuscle, weekTarget]);
 
   if (error) return <p className="gym-error">{error}</p>;
-  if (!ready || !view || !day) return <p className="gym-loading">Loading your log…</p>;
+  if (!ready || !view || !day || !view.active) return <p className="gym-loading">Loading your log…</p>;
 
   const headline = logging
-    ? { eyebrow: day.focus, title: `Week ${view.blockWeek} · Day ${day.label} — ${day.name}`, dateNote: "" }
+    ? { title: `Week ${view.blockWeek} · Day ${day.label}` }
     : sessionHeadline(selection, view.blockWeek);
-  const plans = view.plannedByDay[day.id] || [];
-  const working = plans.filter((plan) => !plan.laterOption && !plan.optional);
-  const optional = plans.filter((plan) => plan.optional && !plan.laterOption);
-  const later = plans.filter((plan) => plan.laterOption);
-  const setsFor = (plan) => (workout ? view.sets.filter((set) => set.plannedExerciseId === plan.id) : []);
+  const setsFor = (plan) => (workout ? view.sets.filter((set) => set.workoutId === workout.id && set.plannedExerciseId === plan.id) : []);
   const done = workout ? view.sets.filter((set) => set.workoutId === workout.id && set.completed).length : 0;
-  const plannedCount = working.reduce((sum, plan) => sum + plan.setsMin, 0);
-  const feedbackPlan = plans.find((plan) => plan.id === feedbackPlanId);
-  const feedbackExercise = feedbackPlan ? view.exercisesById[feedbackPlan.exerciseId] : null;
-  const existingFeedback = feedbackPlan && workout
-    ? view.feedback.find((row) => row.workoutId === workout.id && row.exerciseId === feedbackPlan.exerciseId)
-    : null;
-  const sessionSafety = workout ? view.safetyChecks.find((row) => row.workoutId === workout.id && row.kind === "session") : null;
-  const priorHeel = view.safetyChecks.some((row) => /heel|ankle|plantar|arch/i.test(row.painLocation || ""));
 
-  function renderPlan(plan) {
-    const exercise = view.exercisesById[plan.exerciseId];
-    if (!exercise) return null;
-    return (
-      <ExerciseCard
-        key={plan.id}
-        plan={plan}
-        exercise={exercise}
-        sets={setsFor(plan)}
-        entry={view.suggestions[plan.id]}
-        sampleOn={view.showSample}
-        onCommit={(setNumber, patch) => actions.saveSet({ day, plan, setNumber, patch })}
-        onFeedback={() => setFeedbackPlanId(plan.id)}
-        onUpdate={(patch) => actions.updatePlanned(plan, patch)}
-        onRegress={() => {
-          const step = regressPlan(exercise, plan);
-          if (step.next) actions.updatePlanned(plan, step.next);
-        }}
-      />
-    );
+  async function commitSet(plan, setNumber, patch) {
+    await actions.saveSet({ day, plan: { ...plan, targetRir: weekTarget.rir }, setNumber, patch });
   }
 
   return (
     <section>
       {view.showSample ? <p className="gym-banner">Sample history is on. It is not your training.</p> : null}
       {!sync.configured ? <p className="gym-note">{SYNC_NOT_READY}. Logging stays on this device.</p> : null}
-      {view.pendingMorning ? (
-        <div className="gym-banner">
-          <strong>Next-morning check-in.</strong> How were the first steps after {view.pendingMorning.label}?
-          <button type="button" className="gym-text-btn" onClick={() => setMorningOpen(true)}>Add it</button>
-        </div>
-      ) : null}
-      {view.blockFinished ? (
-        <p className="gym-banner">This block's weeks are done. Loads do not step up on their own — start another meso when you want one.</p>
-      ) : null}
-      <div className="gym-row">
-        <p className="gym-eyebrow">{logging ? `Coach plan · ${day.isLight ? "Light day" : "Return phase"}` : "Schedule"}</p>
-        {logging ? <p className="gym-count">{done} / {plannedCount} sets</p> : null}
-      </div>
-      <h1 className="gym-title">{headline.title}</h1>
+      <p className="gym-kicker">{view.active.name}</p>
+      <h1 className="gym-title">{logging ? headline.title : headline.title}</h1>
       <div className="gym-meta-row">
-        <p className="gym-date">{formatLongDate(today)}{logging ? ` · ${day.timeLabel}` : ""}</p>
-        {logging ? <p className="gym-rir">Target · {day.targetRir} RIR</p> : null}
+        <p className="gym-date">{formatLongDate(today)}{logging ? ` · ${day.name}` : ""}</p>
+        {logging ? <p className="gym-rir">{weekTarget.deload ? "Deload" : "Target"} · {weekTarget.rir} RIR</p> : null}
       </div>
-      {headline.dateNote ? <p className="gym-note">{headline.dateNote}</p> : null}
+      {!logging ? <p className="gym-note">{headline.dateNote}</p> : null}
       {!logging ? (
-        <button type="button" className="gym-finish" onClick={() => setOverrideId(day.id)}>Log {day.label} early</button>
+        <button type="button" className="gym-finish" onClick={() => setOverrideId(day.id)}>Log {day.label}</button>
       ) : (
         <>
-          <p className="gym-note">Rest {day.restMinSeconds}–{day.restMaxSeconds}s. {day.isLight ? "Sunday stays easy, about 4 RIR, except push-ups at 2–3." : "About 3 reps in reserve. No failure work."}</p>
-          <details className="gym-card">
-            <summary>Warm-up and mobility</summary>
-            <p className="gym-help">{day.warmup}</p>
-          </details>
-          {working.map(renderPlan)}
-          {optional.length ? (
-            <details className="gym-card">
-              <summary>Optional</summary>
-              {optional.map(renderPlan)}
-            </details>
-          ) : null}
-          {later.length ? (
-            <details className="gym-card">
-              <summary>Later options</summary>
-              <p className="gym-help">Not in today's dose until you edit them into the plan.</p>
-              {later.map((plan) => {
-                const exercise = view.exercisesById[plan.exerciseId];
-                return exercise ? <p key={plan.id} className="gym-note">{exercise.name}. {plan.notes}</p> : null;
-              })}
-            </details>
-          ) : null}
-          {workout?.status === "completed" ? (
-            <p className="gym-note">Session saved on this device. Nothing progresses until the next morning's first steps are in.</p>
-          ) : null}
-          <button type="button" className="gym-finish" disabled={!done} onClick={() => setSafetyOpen(true)}>
-            {workout?.status === "completed" ? "Update safety check" : "Finish workout →"}
+          {weekTarget.deload ? <p className="gym-note">Deload. Sets are cut back and the load stays put.</p> : null}
+          {groups.map((group) => {
+            const setCount = group.items.reduce((sum, { plan }) => sum + setsFor(plan).filter((set) => set.completed).length, 0);
+            return (
+              <section key={group.muscle}>
+                <div className="gym-muscle">
+                  <span className="gym-muscle__bar" style={{ background: muscleColor(group.muscle) }} />
+                  <strong>{group.muscle}</strong>
+                  <span>{setCount} sets</span>
+                </div>
+                {group.items.map(({ plan, exercise }) => {
+                  const logged = setsFor(plan);
+                  const target = setsThisWeek(plan, weekTarget);
+                  const numbers = [];
+                  const highest = logged.reduce((max, set) => Math.max(max, set.setNumber || 0), 0);
+                  const count = Math.max(target.min, highest);
+                  for (let index = 1; index <= count; index += 1) numbers.push(index);
+                  const suggestion = view.suggestions[plan.id]?.suggestion;
+                  return (
+                    <article key={plan.id} className="gym-card">
+                      <div className="gym-card__head">
+                        <div>
+                          <h2>{exercise.name}</h2>
+                          <p className="gym-dose">{target.min === target.max ? target.min : `${target.min}–${target.max}`} × {plan.targetDose ?? plan.repsMin}{exercise.sideNote ? ` ${exercise.sideNote}` : ""} · RIR {weekTarget.rir}</p>
+                        </div>
+                        <details className="gym-menu">
+                          <summary aria-label={`Actions for ${exercise.name}`}>···</summary>
+                          <div className="gym-menu__pop">
+                            <button type="button" onClick={() => setSwap({ plan, exercise })}>Swap</button>
+                            <button type="button" onClick={() => { setNotesPlan(plan); setNoteDraft(plan.notes || exercise.notes || ""); }}>Notes</button>
+                            <button type="button" onClick={() => actions.setWorkoutNotes(day, withSkipped(workout?.notes, new Set([...skipped, plan.id])))}>Skip</button>
+                          </div>
+                        </details>
+                      </div>
+                      {suggestion?.flagSwap ? <p className="gym-suggest">{suggestion.text}</p> : null}
+                      {suggestion && !suggestion.flagSwap && suggestion.action !== "hold" && suggestion.text ? <p className="gym-help">{suggestion.text}</p> : null}
+                      <div className="gym-sets">
+                        <div className="gym-sets__head gym-sets__head--log">
+                          <span>Set</span>
+                          <span>Kg</span>
+                          <span>{unitLabel(exercise.unit)}</span>
+                          <span />
+                        </div>
+                        {numbers.map((number) => (
+                          <SetRow
+                            key={number}
+                            number={number}
+                            record={logged.find((set) => set.setNumber === number)}
+                            plan={{ ...plan, targetRir: weekTarget.rir }}
+                            unit={exercise.unit}
+                            onCommit={(patch) => commitSet(plan, number, patch)}
+                          />
+                        ))}
+                      </div>
+                      {count < target.max ? (
+                        <button type="button" className="gym-add" onClick={() => commitSet(plan, count + 1, { completed: false, ...doseFields(exercise.unit, plan.targetDose), rir: weekTarget.rir, variation: plan.variation, loadKg: plan.loadKg, loadLabel: plan.loadLabel })}>
+                          + Add set
+                        </button>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </section>
+            );
+          })}
+          <button type="button" className="gym-finish" disabled={!done} onClick={() => actions.finishWorkout(day)}>
+            {workout?.status === "completed" ? "Workout saved" : "Finish workout"}
           </button>
           {overrideId ? <button type="button" className="gym-linkish" onClick={() => setOverrideId(null)}>Back to today</button> : null}
         </>
       )}
 
-      {feedbackPlan && feedbackExercise ? (
-        <FeedbackSheet
-          exercise={feedbackExercise}
-          initial={existingFeedback}
-          onClose={() => setFeedbackPlanId(null)}
-          onSave={async (draft) => {
-            await actions.saveFeedback({ day, exerciseId: feedbackExercise.id, draft });
-            setFeedbackPlanId(null);
+      {sorenessMuscle ? (
+        <SorenessSheet
+          muscle={sorenessMuscle.muscle}
+          onClose={() => {
+            dismissedSoreness.current.add(sorenessMuscle.muscle);
+            setSorenessMuscle(null);
+          }}
+          onSave={async (soreness) => {
+            await actions.saveMuscleFeedback({
+              workoutId: sorenessMuscle.workoutId,
+              muscle: sorenessMuscle.muscle,
+              patch: { soreness },
+              day,
+              apply: true,
+            });
+            setSorenessMuscle(null);
           }}
         />
       ) : null}
-      {safetyOpen && workout ? (
-        <SafetySheet
-          title="Session safety"
-          kind="session"
-          initial={sessionSafety}
-          priorHeel={priorHeel}
-          finishLabel={workout.status === "completed" ? "Save check" : "Save and finish"}
-          onClose={() => setSafetyOpen(false)}
+      {feedbackMuscle && workout ? (
+        <MuscleFeedbackSheet
+          muscle={feedbackMuscle}
+          onClose={() => {
+            dismissedFeedback.current.add(feedbackMuscle);
+            setFeedbackMuscle(null);
+          }}
           onSave={async (draft) => {
-            await actions.saveSafety({ workoutId: workout.id, kind: "session", draft });
-            if (workout.status !== "completed") await actions.finishWorkout(day);
-            setSafetyOpen(false);
+            await actions.saveMuscleFeedback({
+              workoutId: workout.id,
+              muscle: feedbackMuscle,
+              patch: draft,
+              day,
+              apply: true,
+            });
+            setFeedbackMuscle(null);
           }}
         />
       ) : null}
-      {morningOpen && view.pendingMorning ? (
-        <SafetySheet
-          title="First steps this morning"
-          kind="next_morning"
-          priorHeel={priorHeel}
-          finishLabel="Save check-in"
-          onClose={() => setMorningOpen(false)}
-          onSave={async (draft) => {
-            await actions.saveSafety({ workoutId: view.pendingMorning.workout.id, kind: "next_morning", draft });
-            setMorningOpen(false);
+      {swap ? (
+        <SwapSheet
+          muscle={swap.exercise.muscle}
+          exercises={view.exercises}
+          currentId={swap.exercise.id}
+          onClose={() => setSwap(null)}
+          onPick={async (exercise) => {
+            await actions.updatePlanned(swap.plan, {
+              exerciseId: exercise.id,
+              variation: exercise.defaultVariation || "standard",
+              perSide: Boolean(exercise.perSide),
+              loadLabel: exercise.equipment === "band" ? "light" : "bodyweight",
+              loadKg: null,
+            });
+            setSwap(null);
           }}
         />
+      ) : null}
+      {notesPlan ? (
+        <form
+          className="gym-card"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await actions.updatePlanned(notesPlan, { notes: noteDraft });
+            setNotesPlan(null);
+          }}
+        >
+          <label className="gym-field">
+            <span>Notes</span>
+            <textarea rows={3} value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} />
+          </label>
+          <button type="submit" className="gym-primary" style={{ width: "100%", marginTop: 8 }}>Save note</button>
+        </form>
       ) : null}
     </section>
   );

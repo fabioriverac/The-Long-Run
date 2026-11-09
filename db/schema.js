@@ -117,6 +117,8 @@ export const feedback = pgTable("feedback", {
   id: text("id").primaryKey(),
   workoutId: text("workout_id").notNull(),
   exerciseId: text("exercise_id"),
+  muscle: text("muscle"),
+  appliedDelta: integer("applied_delta"),
   jointPain: text("joint_pain").notNull(),
   soreness: text("soreness").notNull(),
   pump: text("pump").notNull(),

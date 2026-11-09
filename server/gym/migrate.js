@@ -3,7 +3,10 @@ import { SYNC_NOT_READY } from "../../src/gym/sync/messages.js";
 import { gymEnv } from "./session.js";
 import { migrationStatements } from "./tables.js";
 
-const MIGRATION_ID = "0001_init";
+const ALTERS = [
+  `alter table "feedback" add column if not exists "muscle" text`,
+  `alter table "feedback" add column if not exists "applied_delta" integer`,
+];
 
 export async function runMigrations(env = process.env) {
   const { databaseUrl, configured } = gymEnv(env);
@@ -11,14 +14,16 @@ export async function runMigrations(env = process.env) {
     return { ok: true, skipped: true, message: `${SYNC_NOT_READY} — skipping gym database migrations.` };
   }
   const sql = neon(databaseUrl);
-  const statements = migrationStatements();
+  const statements = [...migrationStatements(), ...ALTERS];
   for (const statement of statements) {
     await sql.query(statement);
   }
-  await sql.query(
-    `insert into gym_schema_migrations (id) values ($1) on conflict (id) do nothing`,
-    [MIGRATION_ID],
-  );
+  for (const id of ["0001_init", "0002_feedback_muscle"]) {
+    await sql.query(
+      `insert into gym_schema_migrations (id) values ($1) on conflict (id) do nothing`,
+      [id],
+    );
+  }
   return {
     ok: true,
     skipped: false,

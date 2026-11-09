@@ -13,70 +13,32 @@ export const DATA_TABLES = [
 
 export const JOINT_PAIN = [
   { value: "none", label: "None" },
-  { value: "low", label: "Low" },
-  { value: "moderate", label: "Moderate" },
-  { value: "a_lot", label: "A lot" },
+  { value: "some", label: "Some pain" },
+  { value: "a_lot", label: "A lot of pain" },
 ];
 
 export const SORENESS = [
-  { value: "never", label: "Never sore" },
-  { value: "healed_early", label: "Healed early" },
-  { value: "just_in_time", label: "Just in time" },
-  { value: "still_sore", label: "Still sore" },
+  { value: "never", label: "Never got sore" },
+  { value: "healed_early", label: "Healed a while ago" },
+  { value: "just_in_time", label: "Healed just on time" },
+  { value: "still_sore", label: "I'm still sore" },
 ];
 
 export const PUMP = [
-  { value: "low", label: "Low" },
-  { value: "moderate", label: "Moderate" },
-  { value: "amazing", label: "Amazing" },
+  { value: "low", label: "Low pump" },
+  { value: "moderate", label: "Moderate pump" },
+  { value: "amazing", label: "Amazing pump" },
 ];
 
 export const WORKLOAD = [
   { value: "easy", label: "Easy" },
   { value: "pretty_good", label: "Pretty good" },
-  { value: "pushed_limits", label: "Pushed limits" },
+  { value: "pushed_limits", label: "Pushed my limits" },
   { value: "too_much", label: "Too much" },
 ];
 
-export const PAIN_QUALITY = [
-  { value: "none", label: "None" },
-  { value: "dull", label: "Dull" },
-  { value: "sharp", label: "Sharp" },
-  { value: "increasing", label: "Increasing" },
-];
-
-export const SWELLING = [
-  { value: "none", label: "None" },
-  { value: "mild", label: "Mild" },
-  { value: "significant", label: "Significant" },
-];
-
-export const GAIT = [
-  { value: "none", label: "No change" },
-  { value: "slight", label: "Slight change" },
-  { value: "limping", label: "Limping" },
-  { value: "cannot_bear_weight", label: "Can't bear weight" },
-];
-
-export const FIRST_STEP = [
-  { value: "better", label: "Better" },
-  { value: "same", label: "Same" },
-  { value: "worse", label: "Worse" },
-  { value: "much_worse", label: "Much worse" },
-];
-
-export const PAIN_LOCATIONS = [
-  "None",
-  "Left heel",
-  "Left inner ankle",
-  "Arch",
-  "Calf",
-  "Knee",
-  "Hip",
-];
-
 export const SEED_STAMP = "2026-11-08T22:32:00.000Z";
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 export function newId(prefix) {
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;

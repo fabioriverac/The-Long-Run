@@ -137,6 +137,8 @@ export const TABLES = {
       col("id", "id", "text", { primary: true }),
       col("workoutId", "workout_id", "text"),
       col("exerciseId", "exercise_id", "text", { null: true }),
+      col("muscle", "muscle", "text", { null: true }),
+      col("appliedDelta", "applied_delta", "int", { null: true }),
       col("jointPain", "joint_pain", "text"),
       col("soreness", "soreness", "text"),
       col("pump", "pump", "text"),

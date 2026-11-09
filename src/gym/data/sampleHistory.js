@@ -42,11 +42,13 @@ function morning(workoutId, overrides = {}) {
   };
 }
 
-function feedback(workoutId, exerciseId, jointPain = "none") {
+function feedback(workoutId, exerciseId, muscle, jointPain = "none") {
   return {
-    id: `${workoutId}:${exerciseId}`,
+    id: `${workoutId}:${muscle}`,
     workoutId,
     exerciseId,
+    muscle,
+    appliedDelta: 0,
     jointPain,
     soreness: "just_in_time",
     pump: "moderate",
@@ -108,7 +110,7 @@ export function buildSampleHistory(today) {
       deletedAt: null,
       serverReceivedAt: null,
     });
-    feedbackRows.push(feedback(workoutId, "ex-pushup", index === 0 ? "low" : "none"));
+    feedbackRows.push(feedback(workoutId, "ex-pushup", "Chest", index === 0 ? "low" : "none"));
     safetyChecks.push(safety(workoutId, { createdAt: stamp, updatedAt: stamp }));
     safetyChecks.push(morning(workoutId, { createdAt: stamp, updatedAt: stamp, firstStepVsBaseline: index === 3 ? "better" : "same" }));
     feedbackRows[feedbackRows.length - 1].createdAt = stamp;
@@ -155,7 +157,12 @@ export function buildSampleHistory(today) {
       deletedAt: null,
       serverReceivedAt: null,
     });
-    feedbackRows.push({ ...feedback(workoutId, "ex-sl-calf"), createdAt: stamp, updatedAt: stamp });
+    feedbackRows.push({
+      ...feedback(workoutId, "ex-sl-calf", "Calves"),
+      soreness: index === 1 ? "" : "just_in_time",
+      createdAt: stamp,
+      updatedAt: stamp,
+    });
     safetyChecks.push(safety(workoutId, { createdAt: stamp, updatedAt: stamp }));
     safetyChecks.push(morning(workoutId, { createdAt: stamp, updatedAt: stamp }));
   });

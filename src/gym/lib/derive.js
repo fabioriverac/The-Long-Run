@@ -1,7 +1,25 @@
-import { addDays, formatLongDate, formatShortDate, weekdayIndex, weekdayName, weekIndex } from "./dates.js";
-import { coordinateSuggestions, doseOf, epleyE1rm, shouldShowSuggestion, suggestProgression } from "./progression.js";
+import { addDays, formatShortDate, weekdayIndex, weekdayName, weekIndex } from "./dates.js";
+import { doseOf, epleyE1rm, nextExerciseDose, normalizeJointPain, rirForWeek } from "./progression.js";
 
-const MUSCLE_COLORS = ["#ff6b8a", "#5eb0ff", "#f0a05a", "#67c587", "#c9a0ff", "#f2d06b", "#8fd0d8"];
+export const MUSCLE_COLOR = {
+  Chest: "#ff5d8f",
+  Back: "#5eb0ff",
+  Shoulders: "#c9a0ff",
+  Triceps: "#f0a05a",
+  Biceps: "#f2d06b",
+  Quads: "#67c587",
+  Hamstrings: "#8fd0d8",
+  Calves: "#ff8a5b",
+  Hips: "#67c587",
+  Glutes: "#67c587",
+  Core: "#f2d06b",
+  Feet: "#8fd0d8",
+  Other: "#9a9aa3",
+};
+
+export function muscleColor(muscle) {
+  return MUSCLE_COLOR[muscle] || "#ff6b8a";
+}
 
 export function visibleRows(rows, showSample) {
   return (rows || []).filter((row) => row && !row.deletedAt && (showSample || !row.sample));
@@ -11,7 +29,7 @@ function byId(rows) {
   return Object.fromEntries(rows.map((row) => [row.id, row]));
 }
 
-function performanceFrom(workout, sets, safety, feedback, exercise) {
+function performanceFrom(workout, sets, feedback, exercise) {
   const completed = sets.filter((set) => set.completed);
   if (!completed.length) return null;
   const best = [...completed].sort((a, b) => {
@@ -31,10 +49,16 @@ function performanceFrom(workout, sets, safety, feedback, exercise) {
     rir: best.rir,
     weekIndex: workout.weekIndex,
     sample: Boolean(workout.sample || best.sample),
-    safety: safety.find((row) => row.workoutId === workout.id && row.kind === "session") || null,
-    morning: safety.find((row) => row.workoutId === workout.id && row.kind === "next_morning") || null,
-    feedback: feedback.find((row) => row.workoutId === workout.id && row.exerciseId === exercise.id) || null,
+    feedback: feedbackForExercise(feedback, workout.id, exercise),
   };
+}
+
+function feedbackForExercise(feedback, workoutId, exercise) {
+  return (
+    (feedback || []).find((row) => row.workoutId === workoutId && row.muscle === exercise.muscle) ||
+    (feedback || []).find((row) => row.workoutId === workoutId && row.exerciseId === exercise.id) ||
+    null
+  );
 }
 
 export function historyForExercise(exercise, rows) {
@@ -44,7 +68,7 @@ export function historyForExercise(exercise, rows) {
   const history = [];
   for (const workout of workouts) {
     const sets = rows.sets.filter((set) => set.workoutId === workout.id && set.exerciseId === exercise.id);
-    const perf = performanceFrom(workout, sets, rows.safetyChecks, rows.feedback, exercise);
+    const perf = performanceFrom(workout, sets, rows.feedback, exercise);
     if (perf) history.push(perf);
   }
   return history;
@@ -60,16 +84,23 @@ export function suggestionsForProgramme(exercisesById, days, plans, rows) {
       const exercise = exercisesById[plan.exerciseId];
       if (!exercise) continue;
       const history = historyForExercise(exercise, rows).filter((perf) => !perf.sample || rows.showSample);
+      const last = history[0] || null;
       entries.push({
         id: plan.id,
         name: exercise.name,
         sortOrder: day.sortOrder * 100 + plan.sortOrder,
-        suggestion: suggestProgression({ exercise, plan, history }),
+        suggestion: nextExerciseDose({
+          exercise,
+          plan,
+          last,
+          jointPain: last?.feedback?.jointPain,
+          deload: false,
+        }),
         basedOnSample: history.some((perf) => perf.sample),
       });
     }
   }
-  return Object.fromEntries(coordinateSuggestions(entries).map((entry) => [entry.id, entry]));
+  return Object.fromEntries(entries.map((entry) => [entry.id, entry]));
 }
 
 function weeklySets(rows, exercisesById, today) {
@@ -85,7 +116,7 @@ function weeklySets(rows, exercisesById, today) {
     counts.set(exercise.muscle, (counts.get(exercise.muscle) || 0) + 1);
   }
   return [...counts.entries()]
-    .map(([muscle, sets], index) => ({ muscle, sets, color: MUSCLE_COLORS[index % MUSCLE_COLORS.length] }))
+    .map(([muscle, sets]) => ({ muscle, sets, color: muscleColor(muscle) }))
     .sort((a, b) => b.sets - a.sets || a.muscle.localeCompare(b.muscle));
 }
 
@@ -130,6 +161,8 @@ export function buildView(snapshot, { today, showSample }) {
     : {};
 
   const blockWeek = active?.startedOn ? Math.max(1, weekIndex(active.startedOn, today)) : 1;
+  const shownWeek = Math.min(blockWeek, active?.weeks || blockWeek);
+  const weekTarget = active ? rirForWeek(shownWeek, active.weeks, active.includesDeload) : { rir: 3, deload: false };
   const blockFinished = Boolean(active && blockWeek > active.weeks);
   const grid = buildGrid({ active, days, workouts: rows.workouts, today, blockWeek });
   const completed = rows.workouts.filter(
@@ -137,14 +170,6 @@ export function buildView(snapshot, { today, showSample }) {
   );
   const total = active ? active.weeks * days.length : 0;
   const todayWorkout = rows.workouts.find((workout) => workout.date === today && workout.mesoId === active?.id && workout.status === "completed");
-  const pending = rows.workouts
-    .filter((workout) => {
-      if (workout.status !== "completed" || workout.date >= today) return false;
-      const morning = rows.safetyChecks.find((row) => row.workoutId === workout.id && row.kind === "next_morning");
-      return !morning;
-    })
-    .sort((a, b) => b.date.localeCompare(a.date))[0];
-  const pendingDay = pending ? days.find((day) => day.id === pending.trainingDayId) || templateDays.find((day) => day.id === pending.trainingDayId) : null;
 
   const recentSessions = [...rows.workouts]
     .filter((workout) => workout.status === "completed")
@@ -178,9 +203,9 @@ export function buildView(snapshot, { today, showSample }) {
     workouts: rows.workouts,
     sets: rows.sets,
     feedback: rows.feedback,
-    safetyChecks: rows.safetyChecks,
-    blockWeek: Math.min(blockWeek, active?.weeks || blockWeek),
+    blockWeek: shownWeek,
     blockWeekRaw: blockWeek,
+    weekTarget,
     blockFinished,
     grid,
     stats: {
@@ -190,54 +215,8 @@ export function buildView(snapshot, { today, showSample }) {
     },
     weeklySets: weeklySets(rows, exercisesById, today),
     recentSessions,
-    painTrend: trendChips(rows.safetyChecks, "session", today),
-    morningTrend: trendChips(rows.safetyChecks, "next_morning", today),
-    pendingMorning: pending
-      ? { workout: pending, dayName: pendingDay ? `${pendingDay.label} · ${pendingDay.name}` : "Session", label: formatLongDate(pending.date) }
-      : null,
     finishedToday: Boolean(todayWorkout),
   };
-}
-
-function trendChips(checks, kind, today) {
-  return checks
-    .filter((row) => row.kind === kind)
-    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
-    .slice(0, 8)
-    .reverse()
-    .map((row) => ({
-      id: row.id,
-      label:
-        kind === "next_morning"
-          ? morningLabel(row.firstStepVsBaseline)
-          : painLabel(row),
-      tone: toneFor(kind === "next_morning" ? row.firstStepVsBaseline : row.painQuality || row.swelling),
-      date: today,
-    }));
-}
-
-function painLabel(row) {
-  if (row.focalBonePain) return "Bone pain";
-  if (row.swelling === "significant") return "Swelling";
-  if (row.gaitChange === "cannot_bear_weight") return "No weight";
-  if (row.gaitChange === "limping") return "Limping";
-  if (row.painQuality === "sharp" || row.painQuality === "increasing") return "Sharp";
-  if (row.painLocation && row.painLocation !== "None") return row.painLocation.replace("Left ", "");
-  if ((row.painDuring || 0) > 0) return String(row.painDuring);
-  return "None";
-}
-
-function morningLabel(value) {
-  if (value === "better") return "Better";
-  if (value === "worse") return "Worse";
-  if (value === "much_worse") return "Much worse";
-  return "Same";
-}
-
-function toneFor(value) {
-  if (value === "better" || value === "none" || value === "None") return "good";
-  if (value === "same" || value === "dull") return "ok";
-  return "bad";
 }
 
 function buildGrid({ active, days, workouts, today, blockWeek }) {
@@ -309,7 +288,6 @@ export function buildExerciseProgress(view, exerciseId, range) {
   const history = historyForExercise(exercise, {
     workouts: view.workouts,
     sets: view.sets,
-    safetyChecks: view.safetyChecks,
     feedback: view.feedback,
   });
   const start = range === "all" ? "0000-01-01" : addDays(view.today, range === "6w" ? -42 : -92);
@@ -337,8 +315,7 @@ export function buildExerciseProgress(view, exerciseId, range) {
   const last = series[series.length - 1]?.value;
   const delta = useE1rm && first && last && series.length > 1 ? Math.round(((last - first) / first) * 100) : null;
   const latest = series[series.length - 1];
-  const feedback = history.slice(0, 6).reverse().map((perf) => perf.feedback?.jointPain || "none");
-  const recentPain = feedback.slice(-3);
+  const recentFeedback = history.slice(0, 6).reverse().map((perf) => perf.feedback).filter(Boolean);
   return {
     exercise,
     points: series,
@@ -346,9 +323,10 @@ export function buildExerciseProgress(view, exerciseId, range) {
     latest,
     delta,
     sessions: [...points].reverse(),
-    jointPain: feedback,
-    quietPain: recentPain.length >= 3 && recentPain.every((value) => value === "none"),
-    mornings: history.slice(0, 6).reverse().map((perf) => perf.morning?.firstStepVsBaseline || "missing"),
+    feedback: recentFeedback.map((row) => ({
+      ...row,
+      jointPain: normalizeJointPain(row.jointPain),
+    })),
   };
 }
 
@@ -366,4 +344,9 @@ export function unitLabel(unit) {
   return "Reps";
 }
 
-export { shouldShowSuggestion };
+export function setsThisWeek(plan, weekTarget) {
+  if (!weekTarget?.deload) return { min: plan.setsMin, max: plan.setsMax };
+  const min = Math.max(1, Math.floor(plan.setsMin / 2));
+  const max = Math.max(min, Math.floor(plan.setsMax / 2));
+  return { min, max };
+}
