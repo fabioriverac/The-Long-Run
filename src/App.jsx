@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound.jsx";
 // keeps that weight out of the initial bundle, loaded only when a visitor
 // actually goes to /running.
 const Running = lazy(() => import("./pages/Running.jsx"));
+const GymApp = lazy(() => import("./gym/GymApp.jsx"));
 
 // Detail pages are lazy-loaded too — most visits to /cooking or /blog
 // never click into a specific recipe/post, so their (currently small, but
@@ -22,6 +23,20 @@ const PostDetail = lazy(() => import("./pages/PostDetail.jsx"));
 function App() {
   return (
     <Routes>
+      <Route
+        path="gym/*"
+        element={
+          <Suspense
+            fallback={
+              <div style={{ minHeight: "100vh", background: "#121214", color: "#f5f5f7", padding: 24 }}>
+                Loading…
+              </div>
+            }
+          >
+            <GymApp />
+          </Suspense>
+        }
+      />
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route
