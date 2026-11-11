@@ -2,7 +2,7 @@
 .detail__body {
   max-width: 680px;
   font-size: 1.08rem;
-  color: var(--color-charcoal);
+  color: var(--color-text);
 }
 
 .detail__meta {

@@ -3,18 +3,17 @@
 // active-dot fills), so these mirror the tokens in src/index.css rather
 // than referencing var(--color-*) directly in chart props.
 //
-// Each dashboard chart here is a single series, so per dataviz guidance it
-// needs no categorical palette/legend — just one consistent, meaningful
-// hue per chart. Two hues are used across the whole dashboard, grouped by
-// what the metric represents:
-export const CHART_COLOR_TRAINING = "#c1683f"; // clay — training/performance metrics
-export const CHART_COLOR_RECOVERY = "#6c7154"; // olive — recovery/wellness metrics
-export const CHART_COLOR_MUTED = "#7a6f61"; // muted ink — axes, gridlines, goal lines
-export const CHART_COLOR_GOAL = "#8f4a2e"; // rust — goal/reference lines
+// Each dashboard chart is a single series, so it needs no categorical
+// palette — one black stroke for the series, grey for axes and the
+// sub-3 reference line so that line stays readable against the series.
+export const CHART_COLOR_TRAINING = "#000000";
+export const CHART_COLOR_RECOVERY = "#5c5c5c";
+export const CHART_COLOR_MUTED = "#5c5c5c";
+export const CHART_COLOR_GOAL = "#8a8a8a";
 
 export const CHART_AXIS_PROPS = {
   stroke: CHART_COLOR_MUTED,
   fontSize: 12,
   tickLine: false,
-  axisLine: { stroke: "rgba(44, 38, 32, 0.12)" },
+  axisLine: { stroke: "rgba(0, 0, 0, 0.16)" },
 };

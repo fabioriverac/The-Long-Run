@@ -2,40 +2,42 @@
    grid layout) and FeaturedPost (the larger .card--featured variant),
    all of which render through the single Card component. */
 .card {
-  background: var(--color-paper);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 0.65rem;
+  transition: border-color 0.2s ease;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-soft);
+  border-color: var(--color-ink);
 }
 
 .card__tag {
   align-self: flex-start;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-olive-dark);
-  background: rgba(108, 113, 84, 0.12);
-  padding: 0.25em 0.7em;
-  border-radius: 999px;
+  color: var(--color-ink);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  padding: 0.28em 0.6em;
+  border-radius: 0;
 }
 
+/* Recipe tags keep a slightly stronger rule so the two content types
+   stay distinguishable without introducing a second hue. */
 .card__tag--clay {
-  color: var(--color-clay-dark);
-  background: rgba(193, 104, 63, 0.12);
+  border-color: var(--color-ink);
 }
 
 .card__title {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -48,7 +50,8 @@
 }
 
 .card__meta strong {
-  color: var(--color-charcoal);
+  color: var(--color-ink);
+  font-weight: 600;
 }
 
 .card__excerpt {
@@ -59,28 +62,23 @@
 }
 
 /* Featured variant — the single larger spotlight card Home uses for the
-   latest post. No hover lift (unlike the grid cards): it reads as a
-   static spotlight block, not a list item. */
+   latest post. No hover treatment beyond the shared hairline darkening. */
 .card--featured {
-  background: linear-gradient(135deg, var(--color-sand), var(--color-paper));
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
 }
 
-.card--featured:hover {
-  transform: none;
-  box-shadow: none;
-}
-
 .card__title--featured {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  margin-top: 0.5rem;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 500;
+  margin-top: 0.45rem;
   max-width: 640px;
 }
 
 .card__excerpt--featured {
   font-size: 1.05rem;
-  max-width: 640px;
+  max-width: 38rem;
 }
 
 .card__footer {

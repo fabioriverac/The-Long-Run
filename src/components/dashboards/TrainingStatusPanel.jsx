@@ -74,7 +74,7 @@ function TrainingStatusPanel() {
               type="monotone"
               dataKey="vo2max"
               stroke={CHART_COLOR_TRAINING}
-              strokeWidth={2}
+              strokeWidth={1.5}
               dot={false}
               activeDot={{ r: 4 }}
             />
