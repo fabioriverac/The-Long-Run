@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { TabBar, TopBar } from "./components/ui.jsx";
 import { GymDataProvider } from "./GymData.jsx";
+import { useGymData } from "./useGymData.js";
+import SignInScreen from "./screens/SignInScreen.jsx";
 import ExerciseProgressScreen from "./screens/ExerciseProgressScreen.jsx";
 import ExercisesScreen from "./screens/ExercisesScreen.jsx";
 import MesosScreen from "./screens/MesosScreen.jsx";
@@ -11,6 +13,18 @@ import WorkoutScreen from "./screens/WorkoutScreen.jsx";
 import "./gym.css";
 
 function GymShell() {
+  const { sync } = useGymData();
+  if (!sync.checked) {
+    return (
+      <div className="gym">
+        <div className="gym-shell">
+          <TopBar />
+          <p className="gym-loading">Loading your log…</p>
+        </div>
+      </div>
+    );
+  }
+  if (sync.configured && !sync.authenticated) return <SignInScreen />;
   return (
     <div className="gym">
       <div className="gym-shell">

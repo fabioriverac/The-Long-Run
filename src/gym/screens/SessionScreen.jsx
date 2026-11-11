@@ -21,7 +21,7 @@ export default function SessionScreen() {
       <Link to="/gym/mesos" className="gym-back">‹ Mesos</Link>
       <p className="gym-eyebrow">{day ? `${day.label} · ${day.name}` : "Session"}</p>
       <h1 className="gym-title">{formatLongDate(workout.date)}</h1>
-      <p className="gym-note">{sets.length} sets{workout.sample ? " · sample" : ""}</p>
+      <p className="gym-note">{sets.length} sets</p>
       {exerciseIds.map((exerciseId) => {
         const exercise = view.exercisesById[exerciseId];
         if (!exercise) return null;

@@ -19,9 +19,10 @@ export function GymDataProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [sync, setSync] = useState({
-    phase: "local",
+    phase: "checking",
     configured: false,
     authenticated: false,
+    checked: false,
     message: SYNC_NOT_READY,
   });
   const today = useState(() => todayISO())[0];
@@ -48,7 +49,7 @@ export function GymDataProvider({ children }) {
         let result = await pushAndPull(repository);
         const repaired = await repository.ensureSeed(new Date());
         if (repaired && result?.authenticated) result = await pushAndPull(repository);
-        setSync(result);
+        setSync({ ...result, checked: true });
         await refresh();
         return result;
       }),
@@ -81,8 +82,7 @@ export function GymDataProvider({ children }) {
     return () => window.removeEventListener("online", onOnline);
   }, [ready, runSync]);
 
-  const showSample = Boolean(snapshot?.meta?.prefs?.showSample);
-  const view = useMemo(() => (snapshot ? buildView(snapshot, { today, showSample }) : null), [snapshot, today, showSample]);
+  const view = useMemo(() => (snapshot ? buildView(snapshot, { today, showSample: false }) : null), [snapshot, today]);
 
   const actions = useMemo(() => {
     async function mutate(fn) {
@@ -94,14 +94,6 @@ export function GymDataProvider({ children }) {
     }
 
     return {
-      toggleSample() {
-        return mutate(async () => {
-          const all = await repository.loadAll();
-          const next = !all.meta.prefs?.showSample;
-          if (next) await repository.ensureSample(today);
-          await repository.saveMeta({ id: "prefs", showSample: next });
-        });
-      },
       async saveSet({ day, plan, setNumber, patch }) {
         await mutate(async () => {
           const all = await repository.loadAll();
@@ -460,9 +452,10 @@ export function GymDataProvider({ children }) {
             phase: result.configured ? "signed_out" : "local",
             configured: Boolean(result.configured),
             authenticated: false,
-            message: result.message || SYNC_NOT_READY,
+            checked: true,
+            message: result.configured ? "That passcode didn't match." : SYNC_NOT_READY,
           });
-          return result;
+          return { ...result, message: result.configured ? "That passcode didn't match." : result.message };
         }
         await runSync();
         return result;
@@ -473,7 +466,8 @@ export function GymDataProvider({ children }) {
           phase: "signed_out",
           configured: true,
           authenticated: false,
-          message: "Signed out. The log stays on this device.",
+          checked: true,
+          message: "Not signed in",
         });
       },
       async clearAll() {

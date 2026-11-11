@@ -27,7 +27,7 @@ export default function ExerciseProgressScreen() {
       <Link to="/gym/exercises" className="gym-back">‹ Exercises</Link>
       <p className="gym-eyebrow">{exercise.muscle}</p>
       <h1 className="gym-title">{exercise.name}</h1>
-      <p className="gym-note">{exercise.equipment}{exercise.sideNote ? ` · ${exercise.sideNote}` : ""}{view.showSample ? " · sample history included" : ""}</p>
+      <p className="gym-note">{exercise.equipment}{exercise.sideNote ? ` · ${exercise.sideNote}` : ""}</p>
       <div className="gym-seg" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
         {RANGES.map((item) => (
           <button key={item.id} type="button" className={range === item.id ? "is-on" : undefined} onClick={() => setRange(item.id)}>{item.label}</button>

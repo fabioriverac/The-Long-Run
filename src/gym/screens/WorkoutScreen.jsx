@@ -185,8 +185,7 @@ export default function WorkoutScreen() {
 
   return (
     <section>
-      {view.showSample ? <p className="gym-banner">Sample history is on. It is not your training.</p> : null}
-      {!sync.configured ? <p className="gym-note">{SYNC_NOT_READY}. Logging stays on this device.</p> : null}
+      {!sync.configured && sync.checked ? <p className="gym-note">{SYNC_NOT_READY}. Logging stays on this device.</p> : null}
       <p className="gym-kicker">{view.active.name}</p>
       <h1 className="gym-title">{logging ? headline.title : headline.title}</h1>
       <div className="gym-meta-row">
