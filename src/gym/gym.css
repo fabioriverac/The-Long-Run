@@ -953,6 +953,29 @@ body:has(.gym) {
   color: var(--gym-muted);
 }
 
+.gym-signin {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 32px 20px 48px;
+  box-sizing: border-box;
+}
+
+.gym-signin .gym-title {
+  margin-top: 28px;
+}
+
+.gym-signin__error {
+  margin-top: 12px;
+  color: #ffb3c0;
+  font-size: 14px;
+}
+
+.gym-signin .gym-finish {
+  margin-top: 18px;
+}
+
 .gym-actions-col {
   display: grid;
   gap: 10px;

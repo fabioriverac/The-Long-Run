@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { useGymData } from "../useGymData.js";
-
 export function Icon({ name }) {
   const common = {
     width: 22,
@@ -85,17 +83,12 @@ export function TabBar() {
 }
 
 export function TopBar() {
-  const { view, actions } = useGymData();
-  if (!view) return <header className="gym-top" />;
   return (
     <header className="gym-top">
       <div>
         <p className="gym-kicker">The Long Run / Gym</p>
         <p className="gym-logo">meso.</p>
       </div>
-      <button type="button" className={`gym-pill ${view.showSample ? "is-on" : ""}`} onClick={() => actions.toggleSample()} aria-pressed={view.showSample}>
-        {view.showSample ? "Sample on" : "Sample data"}
-      </button>
     </header>
   );
 }

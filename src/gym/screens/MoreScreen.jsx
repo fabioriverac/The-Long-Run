@@ -2,40 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
 import { useGymData } from "../useGymData.js";
-import { SYNC_NOT_READY } from "../sync/messages.js";
-
 export default function MoreScreen() {
   const { sync, actions } = useGymData();
-  const [passcode, setPasscode] = useState("");
   const [message, setMessage] = useState("");
   const [confirmReset, setConfirmReset] = useState("");
   useDocumentTitle("More");
-  const syncLine = sync.configured ? sync.message : SYNC_NOT_READY;
+  const syncLine = sync.authenticated ? "Synced" : "Not signed in";
   return (
     <section>
       <h1 className="gym-title">More</h1>
       <article className="gym-card">
         <p className="gym-eyebrow">Cloud sync</p>
         <h2 style={{ marginTop: 8 }}>{syncLine}</h2>
-        <p className="gym-help">
-          The log lives in this browser either way. Sync needs DATABASE_URL (or POSTGRES_URL), GYM_ACCESS_KEY, and GYM_SESSION_SECRET on the server — never in a VITE_ variable.
-        </p>
-        {sync.configured && !sync.authenticated ? (
-          <form
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const result = await actions.login(passcode);
-              setMessage(result.authenticated ? "Signed in." : result.message || "That passcode didn't match.");
-              if (result.authenticated) setPasscode("");
-            }}
-          >
-            <label className="gym-field">
-              <span>Passcode</span>
-              <input type="password" autoComplete="current-password" value={passcode} onChange={(event) => setPasscode(event.target.value)} />
-            </label>
-            <button type="submit" className="gym-primary" style={{ width: "100%", marginTop: 12 }}>Sign in to sync</button>
-          </form>
-        ) : null}
         {sync.authenticated ? (
           <button type="button" className="gym-secondary" style={{ width: "100%", marginTop: 12 }} onClick={() => actions.logout()}>Sign out</button>
         ) : null}
