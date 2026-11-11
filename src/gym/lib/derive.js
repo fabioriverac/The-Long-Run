@@ -249,17 +249,24 @@ function buildGrid({ active, days, workouts, today, blockWeek }) {
   return weeks;
 }
 
+/** Days until `target` weekday, with Sunday as the end of the week (after Saturday). */
+function upcomingDistance(fromWeekday, targetWeekday) {
+  const from = fromWeekday === 0 ? 7 : fromWeekday;
+  const target = targetWeekday === 0 ? 7 : targetWeekday;
+  const diff = (target - from + 7) % 7;
+  return diff === 0 ? 7 : diff;
+}
+
 export function selectSession(days, today) {
   if (!days.length) return { day: null, relation: "rest" };
   const weekday = weekdayIndex(today);
   const exact = days.find((day) => day.weekday === weekday);
   if (exact) return { day: exact, relation: "today" };
-  if (weekday === 6) {
-    const next = days.find((day) => day.weekday === 1) || days[0];
-    return { day: next, relation: "run-day" };
-  }
-  const later = days.find((day) => day.weekday > weekday);
-  return { day: later || days[0], relation: "rest" };
+  const next = [...days].sort(
+    (a, b) => upcomingDistance(weekday, a.weekday) - upcomingDistance(weekday, b.weekday),
+  )[0];
+  if (weekday === 6) return { day: next, relation: "run-day" };
+  return { day: next, relation: "rest" };
 }
 
 export function sessionHeadline(selection, blockWeek) {
