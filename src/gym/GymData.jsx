@@ -45,7 +45,9 @@ export function GymDataProvider({ children }) {
   const runSync = useCallback(
     () =>
       enqueue(async () => {
-        const result = await pushAndPull(repository);
+        let result = await pushAndPull(repository);
+        const repaired = await repository.ensureSeed(new Date());
+        if (repaired && result?.authenticated) result = await pushAndPull(repository);
         setSync(result);
         await refresh();
         return result;
@@ -283,6 +285,47 @@ export function GymDataProvider({ children }) {
           await repository.softDelete("plannedExercises", plan.id);
         });
       },
+      async movePlan(plan, direction) {
+        await mutate(async () => {
+          const all = await repository.loadAll();
+          const siblings = all.plannedExercises
+            .filter((row) => row.trainingDayId === plan.trainingDayId && !row.deletedAt)
+            .sort((a, b) => a.sortOrder - b.sortOrder);
+          const index = siblings.findIndex((row) => row.id === plan.id);
+          const swap = siblings[index + direction];
+          if (!swap) return;
+          await repository.saveRecord("plannedExercises", { ...plan, sortOrder: swap.sortOrder });
+          await repository.saveRecord("plannedExercises", { ...swap, sortOrder: plan.sortOrder });
+        });
+      },
+      async addWorkoutDay({ name, weekday, timeLabel, targetRir }) {
+        await mutate(async () => {
+          const all = await repository.loadAll();
+          const template = all.mesocycles.find((meso) => meso.kind === "template" && !meso.deletedAt);
+          const meso = activeMeso(all);
+          const targets = [template, meso].filter(Boolean);
+          for (const owner of targets) {
+            const count = all.trainingDays.filter((day) => day.mesoId === owner.id && !day.deletedAt).length;
+            await repository.saveRecord("trainingDays", {
+              id: newId("day"),
+              mesoId: owner.id,
+              label: name.trim().slice(0, 12) || "Day",
+              name: name.trim() || "Custom",
+              weekday: Number(weekday),
+              timeLabel: timeLabel || "18:30",
+              focus: "Custom",
+              targetRir: targetRir ?? 3,
+              restMinSeconds: 60,
+              restMaxSeconds: 120,
+              sortOrder: count,
+              isLight: Number(weekday) === 0,
+              warmup: "",
+              deletedAt: null,
+              serverReceivedAt: null,
+            });
+          }
+        });
+      },
       async addExercise(partial) {
         let created = null;
         await mutate(async () => {
@@ -361,7 +404,8 @@ export function GymDataProvider({ children }) {
             });
             const ids = day.exerciseIds || [];
             for (const [sortOrder, exerciseId] of ids.entries()) {
-              const templatePlan = all.plannedExercises.find((plan) => plan.exerciseId === exerciseId && !plan.deletedAt);
+              const templatePlan = all.plannedExercises.find((plan) => plan.trainingDayId === day.id && plan.exerciseId === exerciseId && !plan.deletedAt)
+                || all.plannedExercises.find((plan) => plan.exerciseId === exerciseId && !plan.deletedAt);
               const exercise = all.exercises.find((row) => row.id === exerciseId);
               await repository.saveRecord("plannedExercises", {
                 id: newId("plan"),
@@ -373,14 +417,14 @@ export function GymDataProvider({ children }) {
                 repsMin: templatePlan?.repsMin || 8,
                 repsMax: templatePlan?.repsMax || 12,
                 targetDose: templatePlan?.targetDose || templatePlan?.repsMin || 8,
-                targetRir: 3,
-                perSide: Boolean(exercise?.perSide),
-                optional: false,
+                targetRir: templatePlan?.targetRir ?? day.targetRir ?? 3,
+                perSide: templatePlan?.perSide ?? Boolean(exercise?.perSide),
+                optional: Boolean(templatePlan?.optional),
                 laterOption: false,
                 notes: templatePlan?.notes || "",
-                variation: exercise?.defaultVariation || "standard",
-                loadKg: null,
-                loadLabel: exercise?.equipment === "band" ? "light" : "bodyweight",
+                variation: templatePlan?.variation || exercise?.defaultVariation || "standard",
+                loadKg: templatePlan?.loadKg ?? null,
+                loadLabel: templatePlan?.loadLabel || (exercise?.equipment === "band" ? "light" : "bodyweight"),
                 deletedAt: null,
                 serverReceivedAt: null,
               });

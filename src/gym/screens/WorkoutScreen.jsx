@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
 import { MuscleFeedbackSheet, SorenessSheet, SwapSheet } from "../components/sheets.jsx";
-import { CheckIcon } from "../components/ui.jsx";
+import { CheckIcon, Sheet } from "../components/ui.jsx";
 import { useGymData } from "../useGymData.js";
-import { formatLongDate } from "../lib/dates.js";
-import { muscleColor, selectSession, sessionHeadline, setsThisWeek, unitLabel } from "../lib/derive.js";
+import { formatLongDate, weekdayName } from "../lib/dates.js";
+import { lastSetLabel, muscleColor, selectSession, sessionHeadline, setsThisWeek, unitLabel } from "../lib/derive.js";
 import { SYNC_NOT_READY } from "../sync/messages.js";
 
 function doseFields(unit, value) {
@@ -29,7 +29,7 @@ function withSkipped(notes, ids) {
   return rest.join("\n");
 }
 
-function SetRow({ number, record, plan, unit, onCommit }) {
+function SetRow({ number, record, plan, unit, previous, onCommit }) {
   const [load, setLoad] = useState(record?.loadKg ?? "");
   const [dose, setDose] = useState(record ? record.reps ?? record.seconds ?? record.steps ?? "" : "");
   useEffect(() => {
@@ -80,6 +80,7 @@ function SetRow({ number, record, plan, unit, onCommit }) {
       >
         <CheckIcon />
       </button>
+      {previous ? <p className="gym-last">Last {previous}</p> : <p className="gym-last"> </p>}
     </div>
   );
 }
@@ -103,6 +104,7 @@ function groupsFrom(plans, exercisesById, skipped) {
 export default function WorkoutScreen() {
   const { ready, error, today, view, actions, sync } = useGymData();
   const [overrideId, setOverrideId] = useState(null);
+  const [choosing, setChoosing] = useState(false);
   const [sorenessMuscle, setSorenessMuscle] = useState(null);
   const dismissedSoreness = useRef(new Set());
   const dismissedFeedback = useRef(new Set());
@@ -191,6 +193,7 @@ export default function WorkoutScreen() {
         <p className="gym-date">{formatLongDate(today)}{logging ? ` · ${day.name}` : ""}</p>
         {logging ? <p className="gym-rir">{weekTarget.deload ? "Deload" : "Target"} · {weekTarget.rir} RIR</p> : null}
       </div>
+      <button type="button" className="gym-linkish" onClick={() => setChoosing(true)}>Choose workout</button>
       {!logging ? <p className="gym-note">{headline.dateNote}</p> : null}
       {!logging ? (
         <button type="button" className="gym-finish" onClick={() => setOverrideId(day.id)}>Log {day.label}</button>
@@ -246,6 +249,7 @@ export default function WorkoutScreen() {
                             record={logged.find((set) => set.setNumber === number)}
                             plan={{ ...plan, targetRir: weekTarget.rir }}
                             unit={exercise.unit}
+                            previous={lastSetLabel(view.sets, view.workouts, exercise, number, today)}
                             onCommit={(patch) => commitSet(plan, number, patch)}
                           />
                         ))}
@@ -268,6 +272,27 @@ export default function WorkoutScreen() {
         </>
       )}
 
+      {choosing ? (
+        <Sheet title="Choose workout" kicker={view.active.name} onClose={() => setChoosing(false)}>
+          {view.days.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="gym-exercise"
+              onClick={() => {
+                setOverrideId(item.id === selection.day?.id && selection.relation === "today" ? null : item.id);
+                setChoosing(false);
+              }}
+            >
+              <span>
+                <strong>{item.label} · {item.name}</strong><br />
+                <small>{weekdayName(item.weekday)} · {item.timeLabel} · {item.targetRir} RIR</small>
+              </span>
+              <span>{item.id === day.id ? "Now" : "Do today"}</span>
+            </button>
+          ))}
+        </Sheet>
+      ) : null}
       {sorenessMuscle ? (
         <SorenessSheet
           muscle={sorenessMuscle.muscle}

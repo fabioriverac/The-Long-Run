@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildView } from "../lib/derive.js";
+import { buildView, lastSetLabel, selectSession } from "../lib/derive.js";
+import { SEED_STAMP } from "../lib/types.js";
 import { createMemoryStorage } from "./memoryStorage.js";
 import { createRepository } from "./repository.js";
 
@@ -37,19 +38,17 @@ describe("coach seed and repository", () => {
       ["ex-inversion", 3, 3, 12, 12, false, false],
       ["ex-dead-bug", 3, 3, 8, 8, false, false],
     ]);
-    expect(doses("tpl-day-b").map((row) => row[0])).toEqual([
-      "ex-step-down",
-      "ex-hip-abd",
-      "ex-side-plank",
-      "ex-band-walk",
-      "ex-copenhagen",
-      "ex-sp-lift",
+    expect(doses("tpl-day-b")).toEqual([
+      ["ex-step-down", 3, 3, 8, 8, false, false],
+      ["ex-hip-abd", 3, 3, 12, 12, false, false],
+      ["ex-side-plank", 2, 2, 15, 30, false, false],
+      ["ex-band-walk", 2, 2, 8, 10, false, false],
     ]);
-    expect(doses("tpl-day-b").find((row) => row[0] === "ex-copenhagen")[6]).toBe(true);
+    expect(all.exercises.find((exercise) => exercise.id === "ex-side-plank").unit).toBe("seconds");
     expect(doses("tpl-day-c")).toEqual([
       ["ex-bridge", 2, 2, 8, 10, false, false],
       ["ex-bi-calf", 2, 2, 10, 10, false, false],
-      ["ex-inversion", 1, 2, 12, 12, true, false],
+      ["ex-inversion", 1, 1, 12, 12, true, false],
       ["ex-dead-bug", 2, 2, 8, 8, false, false],
       ["ex-pushup", 2, 2, 6, 12, false, false],
     ]);
@@ -64,6 +63,30 @@ describe("coach seed and repository", () => {
       includesDeload: true,
     });
     expect(all.outbox.length).toBeGreaterThan(0);
+  });
+
+  it("shows workout B on Thursday 12 Nov and does not duplicate a second seed", async () => {
+    const repo = await seeded();
+    const before = await repo.loadAll();
+    await repo.ensureSeed(new Date(2026, 10, 12));
+    const after = await repo.loadAll();
+    expect(after.trainingDays.filter((day) => !day.deletedAt)).toHaveLength(before.trainingDays.filter((day) => !day.deletedAt).length);
+    expect(after.plannedExercises.filter((plan) => plan.id === "tpl-plan-b-ex-step-down")).toHaveLength(1);
+    const view = buildView(after, { today: "2026-11-12", showSample: false });
+    expect(selectSession(view.days, "2026-11-12").day.label).toBe("B");
+    expect(selectSession(view.days, "2026-11-12").relation).toBe("today");
+  });
+
+  it("refreshes an untouched coach dose and leaves an edited one", async () => {
+    const repo = await seeded();
+    const step = (await repo.loadAll()).plannedExercises.find((row) => row.id === "tpl-plan-b-ex-step-down");
+    await repo.saveRecord("plannedExercises", { ...step, setsMin: 2, setsMax: 2 }, { updatedAt: SEED_STAMP });
+    const calf = (await repo.loadAll()).plannedExercises.find((row) => row.id === "meso-plan-a-ex-sl-calf");
+    await repo.saveRecord("plannedExercises", { ...calf, repsMax: 10 });
+    await repo.ensureSeed(FIXED);
+    const all = await repo.loadAll();
+    expect(all.plannedExercises.find((row) => row.id === "tpl-plan-b-ex-step-down").setsMin).toBe(3);
+    expect(all.plannedExercises.find((row) => row.id === "meso-plan-a-ex-sl-calf").repsMax).toBe(10);
   });
 
   it("does not reseed over an edited plan", async () => {
@@ -174,6 +197,15 @@ describe("progress view", () => {
     expect(view.weeklySets.find((row) => row.muscle === "Calves").sets).toBe(1);
     expect(view.stats.completed).toBe(1);
     expect(view.grid[0].cells[0].state).toBe("done");
+    const exercise = view.exercisesById["ex-sl-calf"];
+    expect(lastSetLabel(view.sets, [{ ...view.workouts.find((row) => row.id === "w1"), status: "completed" }], exercise, 1, "2026-11-16")).toBe("BW × 8");
+    expect(lastSetLabel(
+      [{ workoutId: "w", exerciseId: "ex-side-plank", setNumber: 1, completed: true, seconds: 20, loadKg: null, loadLabel: "bodyweight", deletedAt: null }],
+      [{ id: "w", status: "completed", date: "2026-11-05", deletedAt: null }],
+      { id: "ex-side-plank", unit: "seconds" },
+      1,
+      "2026-11-12",
+    )).toBe("BW × 20s");
     const calfSuggestion = view.suggestions["meso-plan-a-ex-sl-calf"].suggestion;
     expect(calfSuggestion.action).toBe("add_load");
     expect(calfSuggestion.next.loadKg).toBe(1);

@@ -197,6 +197,7 @@ export function buildView(snapshot, { today, showSample }) {
     active,
     pastMesos,
     days,
+    allDays: rows.trainingDays,
     templateDays,
     plannedByDay,
     suggestions: suggestionEntries,
@@ -342,6 +343,33 @@ export function unitLabel(unit) {
   if (unit === "seconds") return "Sec";
   if (unit === "steps") return "Steps";
   return "Reps";
+}
+
+export function lastSetLabel(sets, workouts, exercise, setNumber, beforeDate) {
+  if (!exercise) return "";
+  const previous = (workouts || [])
+    .filter((workout) => workout.status === "completed" && workout.date < beforeDate && !workout.deletedAt)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  for (const workout of previous) {
+    const set = (sets || []).find(
+      (row) =>
+        row.workoutId === workout.id &&
+        row.exerciseId === exercise.id &&
+        row.setNumber === setNumber &&
+        row.completed &&
+        !row.deletedAt,
+    );
+    if (!set) continue;
+    const dose =
+      exercise.unit === "seconds"
+        ? `${set.seconds ?? set.reps ?? "—"}s`
+        : exercise.unit === "steps"
+          ? `${set.steps ?? set.reps ?? "—"}`
+          : `${set.reps ?? "—"}`;
+    const load = set.loadKg > 0 ? `${set.loadKg} kg` : set.loadLabel && !["bodyweight", "dumbbell", ""].includes(set.loadLabel) ? set.loadLabel : "BW";
+    return `${load} × ${dose}`;
+  }
+  return "";
 }
 
 export function setsThisWeek(plan, weekTarget) {

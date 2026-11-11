@@ -156,10 +156,10 @@ export default function MesosScreen() {
       ))}
       <div className="gym-row"><h2>Session history</h2></div>
       {view.recentSessions.length === 0 ? <p className="gym-note">Finished sessions land here.</p> : view.recentSessions.map((session) => (
-        <div key={session.id} className="gym-list-btn">
+        <button key={session.id} type="button" className="gym-exercise" onClick={() => navigate(`/gym/history/${session.id}`)}>
           <span><strong>{session.title}</strong><br /><small>{session.label}{session.sample ? " · sample" : ""}</small></span>
           <small>{session.sets} sets</small>
-        </div>
+        </button>
       ))}
       <div className="gym-row"><h2>Past mesocycles</h2></div>
       {view.pastMesos.length === 0 ? <p className="gym-note">Finished blocks will land here.</p> : view.pastMesos.map((meso) => (

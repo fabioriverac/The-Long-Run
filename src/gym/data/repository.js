@@ -1,8 +1,13 @@
 import { parseBackup, serializeBackup } from "../lib/backup.js";
-import { DATA_TABLES, SEED_VERSION } from "../lib/types.js";
+import { DATA_TABLES, SEED_STAMP, SEED_VERSION } from "../lib/types.js";
 import { buildCoachSeed } from "./coachTemplate.js";
 import { buildSampleHistory } from "./sampleHistory.js";
 import { chooseRecord } from "../sync/merge.js";
+
+function sameRecord(existing, next) {
+  const keys = Object.keys(next).filter((key) => !["createdAt", "updatedAt", "serverReceivedAt"].includes(key));
+  return keys.every((key) => JSON.stringify(existing[key] ?? null) === JSON.stringify(next[key] ?? null));
+}
 
 async function deleteOutboxFor(storage, entity, entityId, updatedAt) {
   const outbox = await storage.getAll("outbox");
@@ -63,33 +68,54 @@ export function createRepository(storage) {
     },
 
     async ensureSeed(now = new Date()) {
-      const marker = await storage.get("meta", "seed");
-      if (marker?.version >= SEED_VERSION) return false;
-      if (marker?.version >= 1) {
-        const bundle = buildCoachSeed(now);
-        for (const exercise of bundle.tables.exercises) {
-          const existing = await storage.get("exercises", exercise.id);
-          if (!existing) await saveRecord("exercises", exercise, { sync: true, updatedAt: exercise.updatedAt });
+      const bundle = buildCoachSeed(now);
+      const tables = ["exercises", "mesocycles", "trainingDays", "plannedExercises"];
+      let wrote = false;
+      const existingMesos = await storage.getAll("mesocycles");
+      const otherActive = existingMesos.some((meso) => meso.id !== "meso-current" && meso.status === "active" && !meso.deletedAt);
+      for (const table of tables) {
+        for (const row of bundle.tables[table]) {
+          const existing = await storage.get(table, row.id);
+          if (existing?.deletedAt) continue;
+          let next = row;
+          if (table === "mesocycles" && row.id === "meso-current" && existing) {
+            next = {
+              ...row,
+              startedOn: existing.startedOn || row.startedOn,
+              status: existing.status === "completed" || otherActive ? existing.status : "active",
+            };
+          }
+          if (!existing) {
+            await saveRecord(table, next, { sync: true, updatedAt: next.updatedAt || SEED_STAMP });
+            wrote = true;
+            continue;
+          }
+          if (existing.updatedAt && existing.updatedAt !== SEED_STAMP) continue;
+          if (sameRecord(existing, next)) continue;
+          await saveRecord(table, { ...next, createdAt: existing.createdAt || next.createdAt }, {
+            sync: true,
+            updatedAt: new Date(now).toISOString(),
+          });
+          wrote = true;
         }
+      }
+      const retired = ["tpl-plan-b-ex-copenhagen", "tpl-plan-b-ex-sp-lift", "meso-plan-b-ex-copenhagen", "meso-plan-b-ex-sp-lift"];
+      for (const id of retired) {
+        const existing = await storage.get("plannedExercises", id);
+        if (existing && !existing.deletedAt && existing.updatedAt === SEED_STAMP) {
+          await saveRecord("plannedExercises", { ...existing, deletedAt: new Date(now).toISOString() });
+          wrote = true;
+        }
+      }
+      const marker = await storage.get("meta", "seed");
+      if (!marker || marker.version < SEED_VERSION || wrote) {
         await storage.put("meta", {
           id: "seed",
           version: SEED_VERSION,
-          seededAt: marker.seededAt || new Date(now).toISOString(),
+          seededAt: marker?.seededAt || new Date(now).toISOString(),
         });
-        return true;
       }
-      const bundle = buildCoachSeed(now);
-      for (const [table, rows] of Object.entries(bundle.tables)) {
-        for (const row of rows) {
-          await saveRecord(table, row, { sync: true, updatedAt: row.updatedAt });
-        }
-      }
-      await storage.put("meta", {
-        id: "seed",
-        version: SEED_VERSION,
-        seededAt: new Date(now).toISOString(),
-      });
-      return true;
+      return wrote || !marker;
     },
 
     async ensureSample(today) {
