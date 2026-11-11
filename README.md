@@ -101,12 +101,70 @@ then run:
 node scripts/sync-garmin.mjs path/to/data.json
 ```
 
+## Gym (`/gym`)
+
+Private training log branded **Meso**. It is not linked from the public nav.
+The rest of the site, including Running, is unchanged. All gym CSS is scoped
+under `.gym`.
+
+Logging is local-first in IndexedDB, so a workout can be recorded with no
+server. JSON export and import live on the More tab. If cloud sync isn't
+configured the app still opens and says **Cloud sync not set up yet**.
+
+The seeded programme is Coach's 8 Nov 2026 template: Monday A, Thursday B,
+Sunday C (light). It is editable. The library is that running-support work
+plus a few bodyweight upper-body exercises. No machines. Target RIR steps
+down across the block (3, 2, 1, 0) and the last week is a deload. After a
+muscle's last set you log joint pain, pump, and workload. Soreness is asked
+at the start of the next session for that muscle. Those answers move the
+next week's set count by one at most. Joint pain holds or reduces the load
+and offers a swap. Load itself still moves one small step at a time, and
+only after the rep range is full.
+
+### Cloud sync
+
+Vercel Functions under `/api/gym` store the same records in Neon Postgres
+(`@neondatabase/serverless` + Drizzle). The browser never sees the database
+URL. Set these on the Vercel project (Production and Preview if the preview
+should sync). Do **not** use `VITE_` names.
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` or `POSTGRES_URL` | Neon connection string, injected by the Vercel Neon integration |
+| `GYM_ACCESS_KEY` | Single-user passcode. Checked only on the server. Make it long. |
+| `GYM_SESSION_SECRET` | HMAC secret for the `gym_session` HttpOnly cookie |
+
+`GET /api/gym/status` reports whether sync is configured. It returns no
+training data. Every other data route requires the session cookie.
+`POST /api/gym/login` checks the passcode. `POST /api/gym/sync` upserts an
+idempotent queue: a replayed write with the same id is safe, and an older
+`updatedAt` does not overwrite a newer row. Pulls use a server receipt time
+so a skewed laptop clock cannot hide a write from another device.
+
+Migrations run at build time (`npm run build` calls `node scripts/gym-migrate.mjs`)
+and again on the first sync request. Both are idempotent (`CREATE TABLE IF NOT EXISTS`).
+If no database URL is set, the script prints `Cloud sync not set up yet` and
+exits 0 so the static site still builds. To migrate by hand:
+
+```bash
+DATABASE_URL="postgres://…" npm run db:migrate
+```
+
+Preview deployments that share the production env vars share the production
+database. Leave the three variables unset on Preview if the preview should
+stay device-local.
+
+The source app this was adapted from (`fabioriverac/Mygymapp`) was not
+readable from this environment, so the domain model (types, progression,
+repository, IndexedDB, JSON backup) was rebuilt to that shape against
+Coach's template and the Meso mockups.
+
 ## Deploying
 
-This is a static Vite app — on Vercel, use framework preset **Vite**, build
-command `npm run build`, output directory `dist`. Because routing is
-client-side (React Router), make sure Vercel's rewrite rule sends all paths
-to `index.html` (`vercel.json` in this repo already does this).
+This is a Vite app with a small `/api/gym` function layer for optional cloud
+sync. On Vercel, use framework preset **Vite**, build command `npm run build`,
+output directory `dist`. Because routing is client-side (React Router),
+`vercel.json` rewrites every path except `/api/*` to `index.html`.
 
 `vercel.json` also sets cache headers: Vite's hashed `/assets/*` files are
 cached for a year as immutable (safe — the filename itself changes

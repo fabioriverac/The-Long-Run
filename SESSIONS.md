@@ -95,3 +95,12 @@ of what the site was called at the time.
 
 `npm run lint` / `npm test` (47 tests) / `npm run build` all clean
 throughout.
+
+## 2026-11-09 — Private gym section at /gym
+
+Added Meso, a local-first training log scoped to `/gym`, without changing
+the public pages or the Running dashboard. Coach's A/B/C template is the
+seed. Progression, safety checks, IndexedDB, JSON backup, and an optional
+Neon sync (Vercel Functions, passcode cookie) sit beside the existing
+Garmin pipeline. Cloud sync stays quiet and says "Cloud sync not set up yet"
+when the database or access env vars are absent.
