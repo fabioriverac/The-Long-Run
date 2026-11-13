@@ -40,10 +40,19 @@ describe("coach seed and repository", () => {
     ]);
     expect(doses("tpl-day-b")).toEqual([
       ["ex-step-down", 3, 3, 8, 8, false, false],
+      ["ex-sl-leg-press", 3, 3, 8, 12, false, false],
       ["ex-hip-abd", 3, 3, 12, 12, false, false],
       ["ex-side-plank", 2, 2, 15, 30, false, false],
       ["ex-band-walk", 2, 2, 8, 10, false, false],
     ]);
+    const press = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-sl-leg-press");
+    expect(press).toMatchObject({ sortOrder: 1, loadKg: 22.5, loadLabel: "machine", perSide: true, targetRir: 3 });
+    expect(all.exercises.find((exercise) => exercise.id === "ex-sl-leg-press")).toMatchObject({
+      equipment: "machine",
+      muscle: "Quads",
+      unit: "reps",
+      perSide: true,
+    });
     expect(all.exercises.find((exercise) => exercise.id === "ex-side-plank").unit).toBe("seconds");
     expect(doses("tpl-day-c")).toEqual([
       ["ex-bridge", 2, 2, 8, 10, false, false],
@@ -87,6 +96,72 @@ describe("coach seed and repository", () => {
     const all = await repo.loadAll();
     expect(all.plannedExercises.find((row) => row.id === "tpl-plan-b-ex-step-down").setsMin).toBe(3);
     expect(all.plannedExercises.find((row) => row.id === "meso-plan-a-ex-sl-calf").repsMax).toBe(10);
+  });
+
+  it("repairs day B with one single-leg leg press and keeps an edited dose", async () => {
+    const storage = createMemoryStorage();
+    const repo = createRepository(storage);
+    await repo.ensureSeed(FIXED);
+    await storage.delete("exercises", "ex-sl-leg-press");
+    await storage.delete("plannedExercises", "tpl-plan-b-ex-sl-leg-press");
+    await storage.delete("plannedExercises", "meso-plan-b-ex-sl-leg-press");
+    const oldOrder = {
+      "tpl-plan-b-ex-step-down": 0,
+      "tpl-plan-b-ex-hip-abd": 1,
+      "tpl-plan-b-ex-side-plank": 2,
+      "tpl-plan-b-ex-band-walk": 3,
+      "meso-plan-b-ex-step-down": 0,
+      "meso-plan-b-ex-hip-abd": 1,
+      "meso-plan-b-ex-side-plank": 2,
+      "meso-plan-b-ex-band-walk": 3,
+    };
+    for (const [id, sortOrder] of Object.entries(oldOrder)) {
+      const row = await storage.get("plannedExercises", id);
+      await storage.put("plannedExercises", { ...row, sortOrder, updatedAt: SEED_STAMP });
+    }
+    const hip = await storage.get("plannedExercises", "meso-plan-b-ex-hip-abd");
+    await storage.put("plannedExercises", { ...hip, repsMax: 15, updatedAt: "2026-11-12T18:00:00.000Z" });
+
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    const all = await repo.loadAll();
+    expect(all.exercises.filter((exercise) => exercise.id === "ex-sl-leg-press")).toHaveLength(1);
+    const order = (dayId) =>
+      all.plannedExercises
+        .filter((plan) => plan.trainingDayId === dayId && !plan.deletedAt)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.exerciseId.localeCompare(b.exerciseId))
+        .map((plan) => plan.exerciseId);
+    expect(order("tpl-day-b")).toEqual(["ex-step-down", "ex-sl-leg-press", "ex-hip-abd", "ex-side-plank", "ex-band-walk"]);
+    expect(order("meso-day-b")).toEqual(order("tpl-day-b"));
+    expect(all.plannedExercises.filter((plan) => plan.id === "meso-plan-b-ex-sl-leg-press")).toHaveLength(1);
+    expect(all.plannedExercises.filter((plan) => plan.id === "tpl-plan-b-ex-sl-leg-press")).toHaveLength(1);
+    const edited = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-hip-abd");
+    expect(edited.repsMax).toBe(15);
+    expect(edited.sortOrder).toBe(2);
+    expect(all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-sl-leg-press")).toMatchObject({
+      setsMin: 3,
+      repsMin: 8,
+      repsMax: 12,
+      loadKg: 22.5,
+      sortOrder: 1,
+    });
+  });
+
+  it("appends an exercise to today's session once, and to the template when asked", async () => {
+    const repo = await seeded();
+    const before = (await repo.loadAll()).plannedExercises.filter((plan) => plan.trainingDayId === "meso-day-b" && !plan.deletedAt);
+    await repo.appendExercise("meso-day-b", "ex-pushup", { alsoDayId: "tpl-day-b", targetRir: 3 });
+    await repo.appendExercise("meso-day-b", "ex-pushup", { alsoDayId: "tpl-day-b", targetRir: 3 });
+    const all = await repo.loadAll();
+    const meso = all.plannedExercises.filter((plan) => plan.trainingDayId === "meso-day-b" && plan.exerciseId === "ex-pushup" && !plan.deletedAt);
+    const template = all.plannedExercises.filter((plan) => plan.trainingDayId === "tpl-day-b" && plan.exerciseId === "ex-pushup" && !plan.deletedAt);
+    expect(meso).toHaveLength(1);
+    expect(template).toHaveLength(1);
+    expect(meso[0].sortOrder).toBe(before.length);
+    const onlyToday = await repo.appendExercise("meso-day-b", "ex-pike-pushup");
+    const after = await repo.loadAll();
+    expect(onlyToday).toHaveLength(1);
+    expect(after.plannedExercises.filter((plan) => plan.trainingDayId === "tpl-day-b" && plan.exerciseId === "ex-pike-pushup")).toHaveLength(0);
   });
 
   it("does not reseed over an edited plan", async () => {

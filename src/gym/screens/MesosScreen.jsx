@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
-import { muscleColor } from "../lib/derive.js";
+import { exercisesForPicker, muscleColor } from "../lib/derive.js";
 import { rirSchedule } from "../lib/progression.js";
 import { useGymData } from "../useGymData.js";
 
@@ -97,7 +97,7 @@ export default function MesosScreen() {
                   event.target.value = "";
                 }}>
                   <option value="">Choose an exercise</option>
-                  {view.exercises.filter((exercise) => exercise.equipment !== "machine").map((exercise) => (
+                  {exercisesForPicker(view.exercises).map((exercise) => (
                     <option key={exercise.id} value={exercise.id}>{exercise.muscle} · {exercise.name}</option>
                   ))}
                 </select>

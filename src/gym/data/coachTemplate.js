@@ -100,6 +100,17 @@ export const COACH_EXERCISES = [
     notes: "Hip and knee control. Use a lower step if the knee dives or the hip complains.",
   }),
   exercise({
+    id: "ex-sl-leg-press",
+    name: "Single-leg leg press",
+    muscle: "Quads",
+    equipment: "machine",
+    unit: "reps",
+    perSide: true,
+    defaultVariation: "single-leg",
+    sideNote: "per leg",
+    notes: "Whole foot, knee over toes, no failure. 3 s down, stop at ~90° knee, hips flat on pad.",
+  }),
+  exercise({
     id: "ex-hip-abd",
     name: "Standing band hip abduction",
     muscle: "Hips",
@@ -270,6 +281,15 @@ const DAY_DEFS = [
     sortOrder: 1,
     plans: [
       plan("ex-step-down", { setsMin: 3, setsMax: 3, repsMin: 8, repsMax: 8, variation: "low-step" }),
+      plan("ex-sl-leg-press", {
+        setsMin: 3,
+        setsMax: 3,
+        repsMin: 8,
+        repsMax: 12,
+        variation: "single-leg",
+        loadKg: 22.5,
+        loadLabel: "machine",
+      }),
       plan("ex-hip-abd", {
         setsMin: 3,
         setsMax: 3,

@@ -21,6 +21,16 @@ export function muscleColor(muscle) {
   return MUSCLE_COLOR[muscle] || "#ff6b8a";
 }
 
+export function exercisesForPicker(exercises, { muscle = "All", query = "" } = {}) {
+  const needle = String(query || "").trim().toLowerCase();
+  return (exercises || []).filter((exercise) => {
+    if (!exercise || exercise.deletedAt) return false;
+    if (muscle !== "All" && exercise.muscle !== muscle) return false;
+    if (needle && !String(exercise.name).toLowerCase().includes(needle)) return false;
+    return true;
+  });
+}
+
 export function visibleRows(rows, showSample) {
   return (rows || []).filter((row) => row && !row.deletedAt && (showSample || !row.sample));
 }

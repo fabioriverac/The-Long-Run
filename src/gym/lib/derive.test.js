@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { selectSession, sessionAfterChoice } from "./derive.js";
+import { exercisesForPicker, selectSession, sessionAfterChoice } from "./derive.js";
 
 const days = [
   { label: "A", name: "Return", weekday: 1, timeLabel: "18:30" },
@@ -40,5 +40,19 @@ describe("off-day workout list", () => {
     expect(chosen.logging).toBe(true);
     expect(chosen.day.label).toBe("B");
     expect(chosen.day.weekday).toBe(4);
+  });
+});
+
+describe("exercise picker", () => {
+  const library = [
+    { id: "ex-pushup", name: "Push-up", muscle: "Chest", equipment: "bodyweight" },
+    { id: "ex-sl-leg-press", name: "Single-leg leg press", muscle: "Quads", equipment: "machine" },
+    { id: "ex-retired", name: "Old machine", muscle: "Quads", equipment: "machine", deletedAt: "2026-11-01" },
+  ];
+
+  it("includes machine exercises and can filter them by muscle", () => {
+    expect(exercisesForPicker(library).map((exercise) => exercise.id)).toEqual(["ex-pushup", "ex-sl-leg-press"]);
+    expect(exercisesForPicker(library, { muscle: "Quads" }).map((exercise) => exercise.name)).toEqual(["Single-leg leg press"]);
+    expect(exercisesForPicker(library, { query: "press" }).map((exercise) => exercise.equipment)).toEqual(["machine"]);
   });
 });

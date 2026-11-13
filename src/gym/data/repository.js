@@ -1,5 +1,5 @@
 import { parseBackup, serializeBackup } from "../lib/backup.js";
-import { DATA_TABLES, SEED_STAMP, SEED_VERSION } from "../lib/types.js";
+import { DATA_TABLES, SEED_STAMP, SEED_VERSION, newId } from "../lib/types.js";
 import { buildCoachSeed } from "./coachTemplate.js";
 import { buildSampleHistory } from "./sampleHistory.js";
 import { chooseRecord } from "../sync/merge.js";
@@ -86,6 +86,19 @@ export function createRepository(storage) {
             };
           }
           if (!existing) {
+            if (table === "plannedExercises") {
+              const siblings = (await storage.getAll("plannedExercises")).filter(
+                (plan) =>
+                  plan.trainingDayId === next.trainingDayId &&
+                  !plan.deletedAt &&
+                  plan.sortOrder >= next.sortOrder &&
+                  plan.updatedAt &&
+                  plan.updatedAt !== SEED_STAMP,
+              );
+              for (const sibling of siblings) {
+                await saveRecord("plannedExercises", { ...sibling, sortOrder: sibling.sortOrder + 1 });
+              }
+            }
             await saveRecord(table, next, { sync: true, updatedAt: next.updatedAt || SEED_STAMP });
             wrote = true;
             continue;
@@ -184,6 +197,48 @@ export function createRepository(storage) {
         );
         if (ackedIds.has(item.id) || superseded) await storage.delete("outbox", item.id);
       }
+    },
+
+    async appendExercise(dayId, exerciseId, { alsoDayId, targetRir } = {}) {
+      const exercise = await storage.get("exercises", exerciseId);
+      if (!exercise || exercise.deletedAt) return [];
+      const targets = [...new Set([dayId, alsoDayId].filter(Boolean))];
+      const created = [];
+      for (const trainingDayId of targets) {
+        const plans = await storage.getAll("plannedExercises");
+        const siblings = plans.filter((plan) => plan.trainingDayId === trainingDayId && !plan.deletedAt);
+        const already = siblings.find((plan) => plan.exerciseId === exerciseId);
+        if (already) {
+          created.push(already);
+          continue;
+        }
+        const sortOrder = siblings.reduce((max, plan) => Math.max(max, Number(plan.sortOrder) || 0), -1) + 1;
+        const weighted = exercise.equipment === "machine" || exercise.equipment === "dumbbell" || exercise.equipment === "barbell";
+        created.push(
+          await saveRecord("plannedExercises", {
+            id: newId("plan"),
+            trainingDayId,
+            exerciseId,
+            sortOrder,
+            setsMin: 3,
+            setsMax: 3,
+            repsMin: exercise.unit === "reps" ? 8 : 15,
+            repsMax: exercise.unit === "reps" ? 12 : 30,
+            targetDose: exercise.unit === "reps" ? 8 : 15,
+            targetRir: targetRir ?? null,
+            perSide: Boolean(exercise.perSide),
+            optional: false,
+            laterOption: false,
+            notes: "",
+            variation: exercise.defaultVariation || "standard",
+            loadKg: null,
+            loadLabel: exercise.equipment === "band" ? "light" : weighted ? exercise.equipment : "bodyweight",
+            deletedAt: null,
+            serverReceivedAt: null,
+          }),
+        );
+      }
+      return created;
     },
 
     async copyTemplateOntoMeso(templateId, mesoId) {
