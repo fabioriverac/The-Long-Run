@@ -41,10 +41,29 @@ describe("coach seed and repository", () => {
     expect(doses("tpl-day-b")).toEqual([
       ["ex-step-down", 3, 3, 8, 8, false, false],
       ["ex-sl-leg-press", 3, 3, 8, 12, false, false],
+      ["ex-hip-thrust", 3, 3, 10, 15, false, false],
       ["ex-hip-abd", 3, 3, 12, 12, false, false],
-      ["ex-side-plank", 2, 2, 15, 30, false, false],
       ["ex-band-walk", 2, 2, 8, 10, false, false],
+      ["ex-side-plank", 2, 2, 15, 30, false, false],
     ]);
+    const thrust = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-hip-thrust");
+    expect(thrust).toMatchObject({
+      sortOrder: 2,
+      loadKg: 10,
+      loadLabel: "machine",
+      perSide: false,
+      targetRir: 3,
+      repsMin: 10,
+      repsMax: 15,
+    });
+    expect(all.exercises.find((exercise) => exercise.id === "ex-hip-thrust")).toMatchObject({
+      name: "Hip thrust (machine)",
+      muscle: "Glutes",
+      equipment: "machine",
+      unit: "reps",
+      perSide: false,
+      notes: "Ribs down, squeeze at top, knees out, no back arch. 1-2 s pause at top, 2-3 s down.",
+    });
     const press = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-sl-leg-press");
     expect(press).toMatchObject({ sortOrder: 1, loadKg: 22.5, loadLabel: "machine", perSide: true, targetRir: 3 });
     expect(all.exercises.find((exercise) => exercise.id === "ex-sl-leg-press")).toMatchObject({
@@ -105,6 +124,9 @@ describe("coach seed and repository", () => {
     await storage.delete("exercises", "ex-sl-leg-press");
     await storage.delete("plannedExercises", "tpl-plan-b-ex-sl-leg-press");
     await storage.delete("plannedExercises", "meso-plan-b-ex-sl-leg-press");
+    await storage.delete("exercises", "ex-hip-thrust");
+    await storage.delete("plannedExercises", "tpl-plan-b-ex-hip-thrust");
+    await storage.delete("plannedExercises", "meso-plan-b-ex-hip-thrust");
     const oldOrder = {
       "tpl-plan-b-ex-step-down": 0,
       "tpl-plan-b-ex-hip-abd": 1,
@@ -131,13 +153,13 @@ describe("coach seed and repository", () => {
         .filter((plan) => plan.trainingDayId === dayId && !plan.deletedAt)
         .sort((a, b) => a.sortOrder - b.sortOrder || a.exerciseId.localeCompare(b.exerciseId))
         .map((plan) => plan.exerciseId);
-    expect(order("tpl-day-b")).toEqual(["ex-step-down", "ex-sl-leg-press", "ex-hip-abd", "ex-side-plank", "ex-band-walk"]);
+    expect(order("tpl-day-b")).toEqual(["ex-step-down", "ex-sl-leg-press", "ex-hip-thrust", "ex-hip-abd", "ex-band-walk", "ex-side-plank"]);
     expect(order("meso-day-b")).toEqual(order("tpl-day-b"));
     expect(all.plannedExercises.filter((plan) => plan.id === "meso-plan-b-ex-sl-leg-press")).toHaveLength(1);
     expect(all.plannedExercises.filter((plan) => plan.id === "tpl-plan-b-ex-sl-leg-press")).toHaveLength(1);
     const edited = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-hip-abd");
     expect(edited.repsMax).toBe(15);
-    expect(edited.sortOrder).toBe(2);
+    expect(edited.sortOrder).toBe(3);
     expect(all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-sl-leg-press")).toMatchObject({
       setsMin: 3,
       repsMin: 8,
@@ -145,6 +167,159 @@ describe("coach seed and repository", () => {
       loadKg: 22.5,
       sortOrder: 1,
     });
+  });
+
+  it("inserts the hip thrust third on B and does not duplicate a repeated repair", async () => {
+    const storage = createMemoryStorage();
+    const repo = createRepository(storage);
+    await repo.ensureSeed(FIXED);
+    await storage.delete("exercises", "ex-hip-thrust");
+    await storage.delete("plannedExercises", "tpl-plan-b-ex-hip-thrust");
+    await storage.delete("plannedExercises", "meso-plan-b-ex-hip-thrust");
+    const beforeThrust = {
+      "tpl-plan-b-ex-step-down": 0,
+      "tpl-plan-b-ex-sl-leg-press": 1,
+      "tpl-plan-b-ex-hip-abd": 2,
+      "tpl-plan-b-ex-side-plank": 3,
+      "tpl-plan-b-ex-band-walk": 4,
+      "meso-plan-b-ex-step-down": 0,
+      "meso-plan-b-ex-sl-leg-press": 1,
+      "meso-plan-b-ex-hip-abd": 2,
+      "meso-plan-b-ex-side-plank": 3,
+      "meso-plan-b-ex-band-walk": 4,
+    };
+    for (const [id, sortOrder] of Object.entries(beforeThrust)) {
+      const row = await storage.get("plannedExercises", id);
+      await storage.put("plannedExercises", { ...row, sortOrder, updatedAt: SEED_STAMP });
+    }
+    const abduction = await storage.get("plannedExercises", "meso-plan-b-ex-hip-abd");
+    await storage.put("plannedExercises", { ...abduction, repsMax: 20, updatedAt: "2026-11-13T18:00:00.000Z" });
+
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    const all = await repo.loadAll();
+    const order = (dayId) =>
+      all.plannedExercises
+        .filter((plan) => plan.trainingDayId === dayId && !plan.deletedAt)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.exerciseId.localeCompare(b.exerciseId))
+        .map((plan) => plan.exerciseId);
+    const expected = ["ex-step-down", "ex-sl-leg-press", "ex-hip-thrust", "ex-hip-abd", "ex-band-walk", "ex-side-plank"];
+    expect(order("tpl-day-b")).toEqual(expected);
+    expect(order("meso-day-b")).toEqual(expected);
+    expect(all.exercises.filter((exercise) => exercise.id === "ex-hip-thrust")).toHaveLength(1);
+    expect(all.plannedExercises.filter((plan) => plan.id === "tpl-plan-b-ex-hip-thrust")).toHaveLength(1);
+    expect(all.plannedExercises.filter((plan) => plan.id === "meso-plan-b-ex-hip-thrust")).toHaveLength(1);
+    expect(all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-hip-thrust").sortOrder).toBe(2);
+    const edited = all.plannedExercises.find((plan) => plan.id === "meso-plan-b-ex-hip-abd");
+    expect(edited.repsMax).toBe(20);
+    expect(edited.sortOrder).toBe(3);
+  });
+
+  it("reuses a user-created hip thrust and will not add a second B plan", async () => {
+    const storage = createMemoryStorage();
+    const repo = createRepository(storage);
+    await repo.ensureSeed(FIXED);
+    await storage.delete("exercises", "ex-hip-thrust");
+    await storage.delete("plannedExercises", "tpl-plan-b-ex-hip-thrust");
+    await storage.delete("plannedExercises", "meso-plan-b-ex-hip-thrust");
+    await repo.saveRecord("exercises", {
+      id: "ex-user-hip",
+      name: "Hip thrust",
+      muscle: "",
+      equipment: "machine",
+      unit: "reps",
+      perSide: false,
+      notes: "",
+      custom: true,
+      deletedAt: null,
+      serverReceivedAt: null,
+      createdAt: "2026-11-13T15:00:00.000Z",
+    }, { updatedAt: "2026-11-13T15:00:00.000Z" });
+    await repo.saveRecord("sets", {
+      id: "set-user-hip",
+      workoutId: "w-hip",
+      plannedExerciseId: "plan-user-hip",
+      exerciseId: "ex-user-hip",
+      setNumber: 1,
+      loadKg: 10,
+      loadLabel: "machine",
+      reps: 12,
+      seconds: null,
+      steps: null,
+      rir: 3,
+      variation: "machine",
+      completed: true,
+      sample: false,
+      deletedAt: null,
+      serverReceivedAt: null,
+    });
+    await repo.saveRecord("plannedExercises", {
+      id: "plan-user-hip",
+      trainingDayId: "meso-day-b",
+      exerciseId: "ex-user-hip",
+      sortOrder: 5,
+      setsMin: 3,
+      setsMax: 3,
+      repsMin: 10,
+      repsMax: 12,
+      targetDose: 10,
+      targetRir: 3,
+      perSide: false,
+      optional: false,
+      laterOption: false,
+      notes: "",
+      variation: "machine",
+      loadKg: 10,
+      loadLabel: "machine",
+      deletedAt: null,
+      serverReceivedAt: null,
+    }, { updatedAt: "2026-11-13T15:10:00.000Z" });
+
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    const all = await repo.loadAll();
+    const hips = all.exercises.filter((exercise) => /hip thrust/i.test(exercise.name) && !exercise.deletedAt);
+    expect(hips.map((exercise) => exercise.id)).toEqual(["ex-user-hip"]);
+    expect(hips[0]).toMatchObject({
+      name: "Hip thrust",
+      muscle: "Glutes",
+      equipment: "machine",
+      notes: "Ribs down, squeeze at top, knees out, no back arch. 1-2 s pause at top, 2-3 s down.",
+    });
+    const mesoPlans = all.plannedExercises.filter((plan) => plan.trainingDayId === "meso-day-b" && plan.exerciseId === "ex-user-hip" && !plan.deletedAt);
+    expect(mesoPlans).toHaveLength(1);
+    expect(mesoPlans[0].id).toBe("plan-user-hip");
+    expect(mesoPlans[0].repsMax).toBe(12);
+    expect(mesoPlans[0].sortOrder).toBe(5);
+    const templatePlans = all.plannedExercises.filter((plan) => plan.trainingDayId === "tpl-day-b" && plan.exerciseId === "ex-user-hip" && !plan.deletedAt);
+    expect(templatePlans).toHaveLength(1);
+    expect(templatePlans[0].sortOrder).toBe(2);
+    expect(all.sets.find((set) => set.id === "set-user-hip")).toMatchObject({ exerciseId: "ex-user-hip", reps: 12 });
+    expect(all.exercises.some((exercise) => exercise.id === "ex-hip-thrust")).toBe(false);
+  });
+
+  it("leaves a user hip thrust's own muscle and notes alone", async () => {
+    const storage = createMemoryStorage();
+    const repo = createRepository(storage);
+    await repo.ensureSeed(FIXED);
+    await storage.delete("exercises", "ex-hip-thrust");
+    await storage.delete("plannedExercises", "tpl-plan-b-ex-hip-thrust");
+    await storage.delete("plannedExercises", "meso-plan-b-ex-hip-thrust");
+    await repo.saveRecord("exercises", {
+      id: "ex-user-hip",
+      name: "Hip Thrust",
+      muscle: "Hips",
+      equipment: "machine",
+      unit: "reps",
+      perSide: false,
+      notes: "My cue",
+      custom: true,
+      deletedAt: null,
+      serverReceivedAt: null,
+    });
+    await repo.ensureSeed(new Date(2026, 10, 13));
+    const exercise = (await repo.loadAll()).exercises.find((row) => row.id === "ex-user-hip");
+    expect(exercise).toMatchObject({ muscle: "Hips", notes: "My cue", name: "Hip Thrust" });
   });
 
   it("appends an exercise to today's session once, and to the template when asked", async () => {

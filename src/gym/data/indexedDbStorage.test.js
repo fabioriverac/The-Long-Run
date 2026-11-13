@@ -27,7 +27,7 @@ describe("IndexedDB storage", () => {
       serverReceivedAt: null,
     });
     const all = await repo.loadAll();
-    expect(all.exercises.length).toBe(18);
+    expect(all.exercises.length).toBe(19);
     expect(all.sets.find((set) => set.id === "set-1").reps).toBe(8);
     expect(all.trainingDays.filter((day) => day.mesoId === "meso-current")).toHaveLength(3);
   });
