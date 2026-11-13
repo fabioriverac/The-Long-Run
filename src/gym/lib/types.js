@@ -38,7 +38,7 @@ export const WORKLOAD = [
 ];
 
 export const SEED_STAMP = "2026-11-08T22:32:00.000Z";
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
 
 export function newId(prefix) {
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;

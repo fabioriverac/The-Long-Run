@@ -9,6 +9,47 @@ function sameRecord(existing, next) {
   return keys.every((key) => JSON.stringify(existing[key] ?? null) === JSON.stringify(next[key] ?? null));
 }
 
+const HIP_THRUST_ID = "ex-hip-thrust";
+
+function blankText(value) {
+  return !String(value || "").trim();
+}
+
+/** Prefer a hip thrust Fabio already logged, so the new B plan keeps his history. */
+async function adoptUserHipThrust(storage, bundle, saveRecord) {
+  const exercises = await storage.getAll("exercises");
+  const sets = await storage.getAll("sets");
+  const matches = exercises.filter(
+    (exercise) => exercise.id !== HIP_THRUST_ID && !exercise.deletedAt && /hip thrust/i.test(exercise.name || ""),
+  );
+  if (!matches.length) return;
+  matches.sort((a, b) => {
+    const logged = (id) => sets.filter((set) => set.exerciseId === id && !set.deletedAt).length;
+    return logged(b.id) - logged(a.id) || String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+  });
+  const user = matches[0];
+  const seed = bundle.tables.exercises.find((row) => row.id === HIP_THRUST_ID);
+  const patch = {};
+  if (blankText(user.muscle) || String(user.muscle).trim().toLowerCase() === "other") patch.muscle = seed?.muscle || "Glutes";
+  if (blankText(user.notes)) patch.notes = seed?.notes || "";
+  if (Object.keys(patch).length) await saveRecord("exercises", { ...user, ...patch });
+
+  const seedLive = exercises.some((exercise) => exercise.id === HIP_THRUST_ID && !exercise.deletedAt);
+  if (!seedLive) {
+    bundle.tables.exercises = bundle.tables.exercises.filter((row) => row.id !== HIP_THRUST_ID);
+  }
+
+  const plans = await storage.getAll("plannedExercises");
+  bundle.tables.plannedExercises = bundle.tables.plannedExercises.flatMap((row) => {
+    if (row.exerciseId !== HIP_THRUST_ID) return [row];
+    const onDay = plans.filter((plan) => plan.trainingDayId === row.trainingDayId && !plan.deletedAt);
+    const stable = onDay.find((plan) => plan.id === row.id);
+    const other = onDay.find((plan) => plan.exerciseId === user.id && plan.id !== row.id);
+    if (other && !stable) return [];
+    return [{ ...row, exerciseId: stable ? stable.exerciseId : user.id }];
+  });
+}
+
 async function deleteOutboxFor(storage, entity, entityId, updatedAt) {
   const outbox = await storage.getAll("outbox");
   for (const item of outbox) {
@@ -69,6 +110,7 @@ export function createRepository(storage) {
 
     async ensureSeed(now = new Date()) {
       const bundle = buildCoachSeed(now);
+      await adoptUserHipThrust(storage, bundle, saveRecord);
       const tables = ["exercises", "mesocycles", "trainingDays", "plannedExercises"];
       let wrote = false;
       const existingMesos = await storage.getAll("mesocycles");

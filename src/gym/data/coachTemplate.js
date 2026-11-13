@@ -111,6 +111,16 @@ export const COACH_EXERCISES = [
     notes: "Whole foot, knee over toes, no failure. 3 s down, stop at ~90° knee, hips flat on pad.",
   }),
   exercise({
+    id: "ex-hip-thrust",
+    name: "Hip thrust (machine)",
+    muscle: "Glutes",
+    equipment: "machine",
+    unit: "reps",
+    perSide: false,
+    defaultVariation: "machine",
+    notes: "Ribs down, squeeze at top, knees out, no back arch. 1-2 s pause at top, 2-3 s down.",
+  }),
+  exercise({
     id: "ex-hip-abd",
     name: "Standing band hip abduction",
     muscle: "Hips",
@@ -290,6 +300,15 @@ const DAY_DEFS = [
         loadKg: 22.5,
         loadLabel: "machine",
       }),
+      plan("ex-hip-thrust", {
+        setsMin: 3,
+        setsMax: 3,
+        repsMin: 10,
+        repsMax: 15,
+        variation: "machine",
+        loadKg: 10,
+        loadLabel: "machine",
+      }),
       plan("ex-hip-abd", {
         setsMin: 3,
         setsMax: 3,
@@ -298,7 +317,6 @@ const DAY_DEFS = [
         variation: "standing",
         loadLabel: "light",
       }),
-      plan("ex-side-plank", { setsMin: 2, setsMax: 2, repsMin: 15, repsMax: 30, variation: "full" }),
       plan("ex-band-walk", {
         setsMin: 2,
         setsMax: 2,
@@ -307,6 +325,7 @@ const DAY_DEFS = [
         variation: "lateral",
         loadLabel: "light",
       }),
+      plan("ex-side-plank", { setsMin: 2, setsMax: 2, repsMin: 15, repsMax: 30, variation: "full" }),
     ],
   },
   {
