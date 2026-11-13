@@ -244,6 +244,19 @@ export function GymDataProvider({ children }) {
           await repository.saveRecord("plannedExercises", { ...plan, ...patch, deletedAt: plan.deletedAt || null });
         });
       },
+      async addToSession({ day, exerciseId, alsoTemplate }) {
+        await mutate(async () => {
+          const all = await repository.loadAll();
+          const template = all.mesocycles.find((meso) => meso.kind === "template" && !meso.deletedAt);
+          const templateDay = alsoTemplate
+            ? all.trainingDays.find((item) => item.mesoId === template?.id && item.label === day.label && !item.deletedAt)
+            : null;
+          await repository.appendExercise(day.id, exerciseId, {
+            alsoDayId: templateDay && templateDay.id !== day.id ? templateDay.id : null,
+            targetRir: day.targetRir,
+          });
+        });
+      },
       async addPlanned(day, exerciseId) {
         await mutate(async () => {
           const all = await repository.loadAll();

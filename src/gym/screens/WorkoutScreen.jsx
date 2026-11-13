@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
-import { MuscleFeedbackSheet, SorenessSheet, SwapSheet } from "../components/sheets.jsx";
+import { AddExerciseSheet, MuscleFeedbackSheet, SorenessSheet, SwapSheet } from "../components/sheets.jsx";
 import { CheckIcon, Sheet } from "../components/ui.jsx";
 import { useGymData } from "../useGymData.js";
 import { formatLongDate, weekdayName } from "../lib/dates.js";
@@ -37,14 +37,20 @@ function SetRow({ number, record, plan, unit, previous, onCommit }) {
     setDose(record ? record.reps ?? record.seconds ?? record.steps ?? "" : "");
   }, [record]);
   const placeholderDose = String(plan.targetDose ?? "");
-  const placeholderLoad = plan.loadLabel && plan.loadLabel !== "bodyweight" && plan.loadLabel !== "dumbbell" ? plan.loadLabel : "BW";
+  const plannedLoad = Number.isFinite(plan.loadKg) && plan.loadKg > 0 ? plan.loadKg : null;
+  const placeholderLoad = plannedLoad != null
+    ? String(plannedLoad)
+    : plan.loadLabel && plan.loadLabel !== "bodyweight" && plan.loadLabel !== "dumbbell"
+      ? plan.loadLabel
+      : "BW";
 
   function commit(completed) {
     const doseNumber = dose === "" ? Number(placeholderDose) : Number(dose);
-    const typedLoad = load === "" ? null : Number(load);
+    const typedLoad = load === "" ? plannedLoad : Number(load);
+    const kg = Number.isFinite(typedLoad) ? typedLoad : null;
     onCommit({
-      loadKg: Number.isFinite(typedLoad) ? typedLoad : null,
-      loadLabel: Number.isFinite(typedLoad) && typedLoad > 0 ? "dumbbell" : plan.loadLabel || "bodyweight",
+      loadKg: kg,
+      loadLabel: kg > 0 && plan.loadLabel && !["bodyweight", "dumbbell"].includes(plan.loadLabel) ? plan.loadLabel : kg > 0 ? "dumbbell" : plan.loadLabel || "bodyweight",
       rir: plan.targetRir,
       variation: plan.variation,
       completed,
@@ -109,6 +115,7 @@ export default function WorkoutScreen() {
   const dismissedSoreness = useRef(new Set());
   const dismissedFeedback = useRef(new Set());
   const [feedbackMuscle, setFeedbackMuscle] = useState(null);
+  const [adding, setAdding] = useState(false);
   const [swap, setSwap] = useState(null);
   const [notesPlan, setNotesPlan] = useState(null);
   const [noteDraft, setNoteDraft] = useState("");
@@ -240,7 +247,7 @@ export default function WorkoutScreen() {
                       <div className="gym-card__head">
                         <div>
                           <h2>{exercise.name}</h2>
-                          <p className="gym-dose">{target.min === target.max ? target.min : `${target.min}–${target.max}`} × {plan.targetDose ?? plan.repsMin}{exercise.sideNote ? ` ${exercise.sideNote}` : ""} · RIR {weekTarget.rir}</p>
+                          <p className="gym-dose">{target.min === target.max ? target.min : `${target.min}–${target.max}`} × {plan.repsMin === plan.repsMax ? plan.repsMin : `${plan.repsMin}–${plan.repsMax}`}{exercise.sideNote ? ` ${exercise.sideNote}` : ""}{plan.loadKg > 0 ? ` · ${plan.loadKg} kg` : ""} · RIR {weekTarget.rir}</p>
                         </div>
                         <details className="gym-menu">
                           <summary aria-label={`Actions for ${exercise.name}`}>···</summary>
@@ -248,9 +255,11 @@ export default function WorkoutScreen() {
                             <button type="button" onClick={() => setSwap({ plan, exercise })}>Swap</button>
                             <button type="button" onClick={() => { setNotesPlan(plan); setNoteDraft(plan.notes || exercise.notes || ""); }}>Notes</button>
                             <button type="button" onClick={() => actions.setWorkoutNotes(day, withSkipped(workout?.notes, new Set([...skipped, plan.id])))}>Skip</button>
+                            <button type="button" onClick={() => actions.setWorkoutNotes(day, withSkipped(workout?.notes, new Set([...skipped, plan.id])))}>Delete</button>
                           </div>
                         </details>
                       </div>
+                      {plan.notes || exercise.notes ? <p className="gym-help">{plan.notes || exercise.notes}</p> : null}
                       {suggestion?.flagSwap ? <p className="gym-suggest">{suggestion.text}</p> : null}
                       {suggestion && !suggestion.flagSwap && suggestion.action !== "hold" && suggestion.text ? <p className="gym-help">{suggestion.text}</p> : null}
                       <div className="gym-sets">
@@ -283,6 +292,10 @@ export default function WorkoutScreen() {
               </section>
             );
           })}
+          <button type="button" className="gym-choose" onClick={() => setAdding(true)}>
+            <span>Add exercise</span>
+            <span aria-hidden="true">+</span>
+          </button>
           <button type="button" className="gym-finish" disabled={!done} onClick={() => actions.finishWorkout(day)}>
             {workout?.status === "completed" ? "Workout saved" : "Finish workout"}
           </button>
@@ -346,6 +359,16 @@ export default function WorkoutScreen() {
               apply: true,
             });
             setFeedbackMuscle(null);
+          }}
+        />
+      ) : null}
+      {adding ? (
+        <AddExerciseSheet
+          exercises={view.exercises}
+          onClose={() => setAdding(false)}
+          onPick={async (exercise, alsoTemplate) => {
+            await actions.addToSession({ day, exerciseId: exercise.id, alsoTemplate });
+            setAdding(false);
           }}
         />
       ) : null}

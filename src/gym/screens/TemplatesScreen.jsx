@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle.js";
 import { useGymData } from "../useGymData.js";
 import { weekdayName } from "../lib/dates.js";
-import { doseSummary } from "../lib/derive.js";
+import { doseSummary, exercisesForPicker } from "../lib/derive.js";
 
 const WEEKDAYS = [
   { value: 1, label: "Monday" },
@@ -96,7 +96,7 @@ export default function TemplatesScreen() {
               event.target.value = "";
             }}>
               <option value="">Choose from the library</option>
-              {view.exercises.filter((exercise) => exercise.equipment !== "machine").map((exercise) => (
+              {exercisesForPicker(view.exercises).map((exercise) => (
                 <option key={exercise.id} value={exercise.id}>{exercise.muscle} · {exercise.name}</option>
               ))}
             </select>
