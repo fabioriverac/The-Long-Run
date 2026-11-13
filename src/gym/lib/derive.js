@@ -257,6 +257,19 @@ function upcomingDistance(fromWeekday, targetWeekday) {
   return diff === 0 ? 7 : diff;
 }
 
+/**
+ * What the workout screen should show. With no choice, an off day stays on the
+ * next session but does not start it. Choosing any day logs that workout today.
+ */
+export function sessionAfterChoice(days, today, chosenId) {
+  const selection = selectSession(days, today);
+  if (!chosenId) {
+    return { day: selection.day, logging: selection.relation === "today", relation: selection.relation };
+  }
+  const day = days.find((item) => item.id === chosenId) || selection.day;
+  return { day, logging: true, relation: day && day.weekday === weekdayIndex(today) ? "today" : "chosen" };
+}
+
 export function selectSession(days, today) {
   if (!days.length) return { day: null, relation: "rest" };
   const weekday = weekdayIndex(today);
