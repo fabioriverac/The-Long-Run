@@ -4,7 +4,7 @@ import { MuscleFeedbackSheet, SorenessSheet, SwapSheet } from "../components/she
 import { CheckIcon, Sheet } from "../components/ui.jsx";
 import { useGymData } from "../useGymData.js";
 import { formatLongDate, weekdayName } from "../lib/dates.js";
-import { lastSetLabel, muscleColor, selectSession, sessionHeadline, setsThisWeek, unitLabel } from "../lib/derive.js";
+import { lastSetLabel, muscleColor, selectSession, sessionAfterChoice, sessionHeadline, setsThisWeek, unitLabel } from "../lib/derive.js";
 import { SYNC_NOT_READY } from "../sync/messages.js";
 
 function doseFields(unit, value) {
@@ -115,8 +115,9 @@ export default function WorkoutScreen() {
   useDocumentTitle("Gym");
 
   const selection = view ? selectSession(view.days, today) : { day: null, relation: "rest" };
-  const day = view?.days.find((item) => item.id === overrideId) || selection.day;
-  const logging = Boolean(overrideId) || selection.relation === "today";
+  const chosen = view ? sessionAfterChoice(view.days, today, overrideId) : { day: null, logging: false };
+  const day = chosen.day;
+  const logging = chosen.logging;
   const workout = useMemo(() => {
     if (!view || !day || !view.active) return null;
     return view.workouts.find((row) => row.trainingDayId === day.id && row.date === today && row.mesoId === view.active.id) || null;
@@ -192,10 +193,28 @@ export default function WorkoutScreen() {
         <p className="gym-date">{formatLongDate(today)}{logging ? ` · ${day.name}` : ""}</p>
         {logging ? <p className="gym-rir">{weekTarget.deload ? "Deload" : "Target"} · {weekTarget.rir} RIR</p> : null}
       </div>
-      <button type="button" className="gym-linkish" onClick={() => setChoosing(true)}>Choose workout</button>
+      <button type="button" className="gym-choose" onClick={() => setChoosing(true)}>
+        <span>Choose workout</span>
+        <span aria-hidden="true">›</span>
+      </button>
       {!logging ? <p className="gym-note">{headline.dateNote}</p> : null}
       {!logging ? (
-        <button type="button" className="gym-finish" onClick={() => setOverrideId(day.id)}>Log {day.label}</button>
+        <div className="gym-daylist">
+          {view.days.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`gym-daycard ${item.id === selection.day?.id ? "is-next" : ""}`}
+              onClick={() => setOverrideId(item.id)}
+            >
+              <span>
+                <strong>{item.label} · {item.name}</strong>
+                <small>{weekdayName(item.weekday)} · {item.timeLabel}</small>
+              </span>
+              <span aria-hidden="true">›</span>
+            </button>
+          ))}
+        </div>
       ) : (
         <>
           {weekTarget.deload ? <p className="gym-note">Deload. Sets are cut back and the load stays put.</p> : null}

@@ -459,6 +459,53 @@ body:has(.gym) {
   font-weight: 650;
 }
 
+.gym-choose,
+.gym-daycard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #5a5a64;
+  background: #1c1c20;
+  color: white;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gym-choose span:last-child,
+.gym-daycard span:last-child {
+  color: var(--gym-muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.gym-daylist {
+  display: flex;
+  flex-direction: column;
+}
+
+.gym-daycard span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gym-daycard small {
+  color: var(--gym-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gym-daycard.is-next {
+  border-color: #ff8a9a;
+}
+
 .gym-menu {
   position: relative;
 }
